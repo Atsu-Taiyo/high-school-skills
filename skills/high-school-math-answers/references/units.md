@@ -195,9 +195,10 @@
 - ロピタルの定理は使わない。
 - はさみうちの原理は，両側の不等式と，両側の極限が等しいことを書く。
 - $\{r^{n}\}$ の極限は $r$ の値で場合を分ける（$r>1$，$r=1$，$\lvert r\rvert<1$，$r\leqq -1$）。
-- 無限級数は部分和 $S_{n}$ の極限。「$a_{n}\longrightarrow 0$ だから収束」は誤り。無限等比級数は「初項 $a$，公比 $r$，$\lvert r\rvert<1$ であるから収束し，和は $\dfrac{a}{1-r}$」。
+- 無限級数は部分和 $S_{n}$ の極限。「$a_{n}\to 0$ だから収束」は誤り。無限等比級数は「初項 $a$，公比 $r$，$\lvert r\rvert<1$ であるから収束し，和は $\dfrac{a}{1-r}$」。
 - 片側極限 $x\to +0$，$x\to -0$ を区別する。
-- 基本の極限：$\displaystyle\lim_{x\to 0}\dfrac{\sin x}{x}=1$，$\displaystyle\lim_{h\to 0}(1+h)^{\frac{1}{h}}=e$。$x\to\infty$ のとき $\dfrac{x}{e^{x}}\longrightarrow 0$，$\dfrac{\log x}{x}\longrightarrow 0$ は，問題文で与えられていなければ不等式を示してはさみうちで導く。
+- 極限値との大小に狭義の不等号（$<$）を使うときは，途中の点を1つはさんで示す（`answer-style.md` 9節）。
+- 基本の極限：$\displaystyle\lim_{x\to 0}\dfrac{\sin x}{x}=1$，$\displaystyle\lim_{h\to 0}(1+h)^{\frac{1}{h}}=e$。$x\to\infty$ のとき $\dfrac{x}{e^{x}}\to 0$，$\dfrac{\log x}{x}\to 0$ は，問題文で与えられていなければ不等式を示してはさみうちで導く。
 - 連続性は $\displaystyle\lim_{x\to a}f(x)=f(a)$ で確かめる。中間値の定理は「閉区間で連続」と「端点の値が異符号」を述べる。
 - 漸化式で定まる数列の極限：極限値の候補 $\alpha$ を求め，$\lvert a_{n+1}-\alpha\rvert\leqq r\lvert a_{n}-\alpha\rvert$ を示してはさみうち。「収束すると仮定して」$\alpha$ を求めるだけでは，収束の証明にならない。
 

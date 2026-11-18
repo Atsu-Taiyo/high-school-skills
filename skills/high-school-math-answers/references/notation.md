@@ -33,7 +33,7 @@
 | 複号 | $x=\pm 2$ | `\pm`，`\mp` | 「複号同順」と添える |
 | 絶対値 | $\lvert x\rvert$ | `\lvert x\rvert` | 表の外では縦線2本で挟む書き方でよい |
 | 平方根 | $\sqrt{2}$，$\sqrt[3]{2}$ | `\sqrt{2}`，`\sqrt[3]{2}` | |
-| 式番号 | $x+y=3\quad\cdots\cdots\text{①}$ | `\quad\cdots\cdots\text{①}` | 本文では「① より」と参照する |
+| 式番号 | 　$x+y=3$　……① | `　$x+y=3$　……①` | 丸数字は数式の外（13節）。本文では「① より」と参照する |
 | ならば | $p\Rightarrow q$ | `\Rightarrow` | `\implies`，`\to` は使わない |
 | 同値 | $p\iff q$ | `\iff` | 本当に同値のときだけ |
 | 連立 | $\begin{cases}x+y=3\\x-y=1\end{cases}$ | `\begin{cases}x+y=3\\x-y=1\end{cases}` | |
@@ -166,7 +166,7 @@
 | 極限 | $\displaystyle\lim_{n\to\infty}a_{n}=\alpha$ | `\displaystyle\lim_{n\to\infty}a_{n}` | |
 | 片側極限 | $\displaystyle\lim_{x\to +0}$，$\displaystyle\lim_{x\to 1-0}$ | `\lim_{x\to +0}`，`\lim_{x\to 1-0}` | $x\to 0^{+}$ は使わない |
 | 発散 | $\displaystyle\lim_{n\to\infty}a_{n}=\infty$ | | 「正の無限大に発散する」 |
-| 近づく | $x\longrightarrow a$ のとき $f(x)\longrightarrow\alpha$ | `\longrightarrow` | `\to` でもよい |
+| 近づく | $x\to a$ のとき $f(x)\to\alpha$ | `\to` | $\lim$ の下と同じ矢印にそろえる。`\longrightarrow` と混ぜない |
 | 無限級数 | $\displaystyle\sum_{n=1}^{\infty}a_{n}$ | `\sum_{n=1}^{\infty}` | |
 | 導関数 | $f'(x)$，$y'$，$\dfrac{dy}{dx}$ | `f'(x)`，`\dfrac{dy}{dx}` | $\dot{y}$，$Df$ は使わない |
 | 第2次導関数 | $f''(x)$，$y''$，$\dfrac{d^{2}y}{dx^{2}}$ | `f''(x)` | |
@@ -205,6 +205,7 @@
 | 平行，垂直 | $\vec{a}\parallel\vec{b}$，$\vec{a}\perp\vec{b}$ | `\parallel`，`\perp` | |
 | 位置ベクトル | $\mathrm{P}(\vec{p})$ | `\mathrm{P}(\vec{p})` | |
 | 単位ベクトル | $\vec{e}$ | | $\hat{a}$ は使わない |
+| 添字つきのベクトル | $\vec{e}_1$，$\vec{a}_n$ | `\vec{e}_1`，`\vec{a}_n` | 添字は矢印の外。`\vec{e_1}` にしない |
 | 直線のベクトル方程式 | $\vec{p}=\vec{a}+t\vec{d}$ | | $t$ は実数（媒介変数） |
 
 ## 12. 複素数平面・曲線（数学C）
@@ -232,13 +233,39 @@ Markdown の中の数式は KaTeX や MathJax で描画される。次のもの�
 | `\newcommand`，`\def`，`\renewcommand` | 毎回そのまま書く |
 | `\nCr`，`\C`，`\bm`，`\vector` などの独自マクロ | `{}_{n}\mathrm{C}_{r}`，`\vec{a}` |
 | `\begin{align}`，`\begin{equation}`，`\begin{eqnarray}` | `\begin{aligned}` |
-| `\label`，`\ref`，`\eqref` | `\cdots\cdots\text{①}` と本文での参照 |
-| `\tag`（`aligned` の中） | 同上 |
+| `\label`，`\ref`，`\eqref`，`\tag` | 下の「式番号」の書き方と，本文での参照 |
+| `\text{①}`，`\text{㋐}` など数式の中の丸数字・丸囲み文字 | 数式の外に書く（KaTeX が警告を出す） |
+| `\vec{e_1}` | `\vec{e}_1` |
+| `\phi`（ϕ） | `\varphi`（φ。教科書の字形。図とも一致させる） |
+| `V'^{2}` | `{V'}^{2}` |
 | `\begin{tabular}` | Markdown の表，または `\begin{array}` |
 | `\mbox`，`\hbox` に長い文 | 地の文に出す |
-| `\textcircled{1}` | `\text{①}`（式番号も選択肢の番号も同じ） |
+| `\textcircled{1}` | 丸数字 ① を数式の外に書く（式番号も選択肢の番号も同じ） |
 | `\displaystyle` の付け忘れ（文中の $\sum$，$\lim$，$\int$） | 文中では `\displaystyle` を付ける。`$$` の中では不要 |
 | `$` を閉じ忘れる，`$$` の中に空行を入れる | 数式ブロックの中に空行を作らない |
 | 通貨の `$` | `\$` |
 
-`\text{①}` や `\text{cm}` のような短い語は使える。日本語の文を入れると，字体と改行が本文とずれるうえ，編集もしにくくなるので入れない。
+`\text{かつ}` のような短い語は使える（単位は `\mathrm{cm}`）。日本語の文を入れると，字体と改行が本文とずれるうえ，編集もしにくくなるので入れない。
+
+### 式番号
+
+丸数字（①〜⑳），丸囲みの文字（㋐）は，KaTeX のフォントに無い。`$...$` の中に書くと，`\text{}` の中でも `\tag{}` の中でも「No character metrics for '①'」の警告が出て，字幅が取れず位置がずれる（MathJax では出ない）。そこで，**丸数字は必ず数式の外の地の文に置く**。
+
+番号を付ける式は，独立した段落に文中数式で書く。行頭に全角空白1つ，式の後ろに全角空白と「……」（三点リーダー2つ）と丸数字。
+
+```markdown
+真数は正であるから
+
+　$x>1$　……①
+
+方程式を変形すると
+
+$$\log_{2}(x-1)(x+2)=\log_{2}4$$
+```
+
+- 番号を付けない式は `$$...$$` のままでよい。番号を付ける式だけをこの形にする。
+- 文中数式なので，$\lim$，$\sum$，$\int$ には `\displaystyle` を付ける。分数は `\dfrac`。
+- 連立する2式にそれぞれ番号を付けるときは，1式ずつ段落を分けて並べる。`aligned` の途中の行に番号が要るときは，その行で式を切って独立させる。
+- 参照は「① より」「② を ① に代入すると」。数式の中から参照しない（`$\text{① より}$` としない）。
+- 選択肢の番号（「**答**　①」），表の中の丸数字も，数式の外に書く。
+- `(1)`，`(2)` は小問の番号と紛れるので，式番号には使わない。
