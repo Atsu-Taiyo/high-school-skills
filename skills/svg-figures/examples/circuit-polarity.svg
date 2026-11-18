@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="408" height="254" viewBox="0 0 408 254" role="img" aria-labelledby="f93c591-t f93c591-d">
+<title id="f93c591-t">コンデンサーの充電</title>
+<desc id="f93c591-d">起電力 E の電池，スイッチ S，抵抗 R，電気容量 C のコンデンサーを直列につないだ回路。電池の正極の側の極板に +Q，負極の側の極板に −Q がたまる</desc>
+<defs>
+<marker id="f93c591-arr-e" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="6.4" refX="4" refY="3.2" orient="auto" overflow="visible"><path d="M0,0 L9,3.2 L0,6.4 L2.2,3.2 Z" fill="#000" stroke="none"/></marker>
+</defs>
+<rect x="0" y="0" width="408" height="254" fill="#fff"/>
+<g fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+<path d="M76.4,63.2 L76.4,126.2" stroke-width="1.2"/>
+<path d="M76.4,132.2 L76.4,195.2" stroke-width="1.2"/>
+<path d="M64.4,126.2 L88.4,126.2" stroke-width="1.2"/>
+<path d="M70.4,132.2 L82.4,132.2" stroke-width="3" stroke-linecap="butt"/>
+<path d="M76.4,63.2 L117.2,63.2" stroke-width="1.2"/>
+<path d="M141.2,63.2 L182,63.2" stroke-width="1.2"/>
+<path d="M117.2,63.2 L139.2,54.2" stroke-width="1.2"/>
+<path d="M182,63.2 L246.2,63.2" stroke-width="1.2"/>
+<path d="M276.2,63.2 L340.4,63.2" stroke-width="1.2"/>
+<path d="M246.2,68.2 L276.2,68.2 L276.2,58.2 L246.2,58.2 Z" stroke-width="1.2" fill="#fff"/>
+<path d="M340.4,63.2 L340.4,126.2" stroke-width="1.2"/>
+<path d="M340.4,132.2 L340.4,195.2" stroke-width="1.2"/>
+<path d="M329.4,126.2 L351.4,126.2" stroke-width="1.5"/>
+<path d="M329.4,132.2 L351.4,132.2" stroke-width="1.5"/>
+<path d="M340.4,195.2 L76.4,195.2" stroke-width="1.2"/>
+<path d="M221.6,87.4 L295.8,87.4" stroke-width="1" marker-end="url(#f93c591-arr-e)"/>
+</g>
+<g font-family="'Times New Roman', Times, 'Nimbus Roman', 'Liberation Serif', 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif CJK JP', serif" font-size="14" fill="#000" stroke="none" text-anchor="middle">
+<text x="55.64" y="133.82" xml:space="preserve"><tspan font-style="italic">E</tspan></text>
+<text x="84.3" y="118.99" font-size="13" xml:space="preserve">+</text>
+<text x="84.3" y="147.99" font-size="13" xml:space="preserve">−</text>
+<text x="129.2" y="47.82" xml:space="preserve">S</text>
+<text x="261.2" y="51.82" xml:space="preserve"><tspan font-style="italic">R</tspan></text>
+<text x="360.16" y="133.82" xml:space="preserve"><tspan font-style="italic">C</tspan></text>
+<text x="326.44" y="118.82" xml:space="preserve">+<tspan font-style="italic">Q</tspan></text>
+<text x="326.44" y="148.82" xml:space="preserve">−<tspan font-style="italic">Q</tspan></text>
+<text x="261.2" y="103.02" xml:space="preserve"><tspan font-style="italic">I</tspan></text>
+</g>
+</svg>

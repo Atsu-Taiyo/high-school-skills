@@ -133,9 +133,104 @@ def convex_lens():
     fig.save(out("convex-lens.svg"))
 
 
+def lens_dimensions():
+    """凸レンズと凹レンズの組み合わせ。寸法線を段に分け，短い区間と引き出し線を使う。
+
+    右から来た光軸に平行な光線が凸レンズ L1（焦点距離 8d）で点 P1 に向かい，途中の
+    凹レンズ L2（焦点距離 12d）で曲げられてスクリーン S 上の点 P2 に集まる。
+    """
+    w = 1.6                                   # 光線の高さ（d を 1 とする）
+    xS, xP1, x2, x1 = 0.0, 1.0, 4.0, 9.0      # S，P1，凹レンズ L2，凸レンズ L1 の位置
+    f1 = x1 - xP1                             # L1 の焦点が P1
+    h2 = w * (x2 - xP1) / f1                  # L2 を通る高さ（相似）
+    b, _ = hs.lens_image(-(x2 - xP1), -12.0)  # L2：P1 を虚光源として像の位置を確かめる
+    assert abs(b - (x2 - xS)) < 1e-9
+    fig = Figure(-0.9, 10.6, -4.2, 3.0, unit=26, display_width=360,
+                 title="凸レンズと凹レンズの組み合わせ",
+                 desc="光軸に平行な光線が凸レンズ L1 と凹レンズ L2 を通ってスクリーン S 上の点 P2 に集まる図。"
+                      "レンズとスクリーンの間隔を段に分けた寸法線で示す")
+    fig.optical_axis()
+    fig.segment((xS, -2.0), (xS, 2.0))
+    fig.lens(x1, 2.2)
+    fig.lens(x2, 1.1, kind="concave")
+    fig.ray((10.6, w), (x1, w), (x2, h2), (xS, 0))
+    fig.segment((x2, h2), (xP1, 0), style="dash")          # L2 が無いときの進路
+    fig.dot((x2, h2))
+    fig.point((xP1, 0), "P$_1$", dir="SE", dist=3)
+    fig.point((xS, 0), "P$_2$", dir="SW")
+    fig.label("S", (xS, 2.0), dir="N")
+    fig.label("L$_2$", (x2, 1.1), dir="N")
+    fig.label("L$_1$", (x1, 2.2), dir="N")
+    fig.leader("$\\frac{3}{8}w$", (x2, h2), (x2 - 1.6, 2.0))   # 光線が L2 を通る高さ
+    fig.dimension((10.0, 0), (10.0, w), "$w$", side=-1, offset=10, ext=False)
+    # 寸法線は図形の下にまとめる。1段目は区間ごと，2段目は全体。
+    # 補助線は S・L2・L1 の下端と軸上の P1 から下ろす。区間 d は短いので矢じりが外に出る。
+    feet = [(xS, -2.0), (xP1, 0), (x2, -1.1), (x1, -2.2)]
+    fig.dimension_chain(feet, ["$d$", "$3d$", "$5d$"], side=-1, axis="x")
+    fig.dimension(feet[0], feet[-1], "$9d$", side=-1, axis="x", row=1)
+    fig.save(out("lens-dimensions.svg"))
+
+
+def circuit_polarity():
+    """電池の極性とコンデンサーの極板の電荷を記入した回路。"""
+    fig = Figure(-1.1, 6.9, -0.7, 3.8, unit=44, title="コンデンサーの充電",
+                 desc="起電力 E の電池，スイッチ S，抵抗 R，電気容量 C のコンデンサーを直列につないだ回路。"
+                      "電池の正極の側の極板に +Q，負極の側の極板に −Q がたまる")
+    fig.battery((0, 3), (0, 0), "$E$", side=-1, polarity=True)        # 上が正極。＋−は回路の内側
+    fig.switch((0, 3), (2.4, 3), "S")
+    fig.resistor((2.4, 3), (6, 3), "$R$")
+    fig.capacitor((6, 3), (6, 0), "$C$", side=1, charges=("$+Q$", "$-Q$"))
+    fig.wire((6, 0), (0, 0))
+    fig.arrow((3.3, 2.45), (5.1, 2.45), style="aux")                  # 充電中の電流の向き
+    fig.label("$I$", (4.2, 2.45), dir="S", dist=4)
+    fig.save(out("circuit-polarity.svg"))
+
+
+def cycle_direction():
+    """p-V 図のサイクル。全過程を同じ太さで描き，各過程の中央に向きの矢じりを置く。"""
+    p1, p2, V1, V2 = 1.0, 2.5, 1.0, 2.5
+    iso = lambda V: p2 * V1 / V                      # 状態 B を通る等温線 pV = 一定
+    V3 = V2
+    A, B, C = (V1, p1), (V1, p2), (V3, iso(V3))
+    fig = Figure(-0.5, 3.6, -0.5, 3.4, unit=70, aspect_ok=True, title="p-V 図のサイクル",
+                 desc="定積変化 A→B，等温変化 B→C，定圧変化 C→A からなるサイクルの p-V 図。"
+                      "各過程の中央に変化の向きの矢じりがある")
+    fig.xaxis("$V$", ticks=[(V1, "$V_1$"), (V3, "$V_2$")])
+    fig.yaxis("$p$", ticks=[(p1, "$p_1$"), (p2, "$p_2$")])
+    fig.label("O", (0, 0), dir="SW", dist=4)
+    for P in (A, B, C):
+        fig.segment((P[0], 0), P, style="dash")
+        fig.segment((0, P[1]), P, style="dash")
+    fig.segment(A, B, arrow="mid")                   # 定積
+    fig.plot(iso, V1, V3)                            # 等温（曲線）
+    Vm = (V1 + V3) / 2
+    fig.mid_arrow((Vm - 0.05, iso(Vm - 0.05)), (Vm + 0.05, iso(Vm + 0.05)))
+    fig.segment(C, A, arrow="mid")                   # 定圧
+    fig.point(A, "A", dir="SW")
+    fig.point(B, "B", dir="NE")
+    fig.point(C, "C", dir="NE")
+    fig.save(out("cycle-direction.svg"))
+
+
+def field_density():
+    """直線電流がつくる磁場。導線に近いほど強いことを ⊗ の密度で表す。"""
+    fig = Figure(-0.9, 5.4, -0.3, 3.5, unit=50, title="直線電流のまわりの磁場",
+                 desc="紙面内を上向きに流れる直線電流 I の右側の磁場。向きは紙面の表から裏で，"
+                      "導線に近いほど強いので ⊗ を密に描いてある")
+    fig.segment((0, 0), (0, 3.3), style="main", arrow="mid", width=2.2)
+    fig.label("$I$", (0, 1.65), dir="W", dist=9)
+    fig.field_grid(0.5, 5.1, 0.25, 3.05, nx=6, ny=5, into=True, strength=lambda x: 1 / x, r=4.5)
+    fig.dimension((0, 0.25), (2.2, 0.25), "$r$", side=-1, offset=14)
+    fig.save(out("field-density.svg"))
+
+
 if __name__ == "__main__":
     parabola_area()
     triangle_circumcircle()
     incline_forces()
     circuit()
     convex_lens()
+    lens_dimensions()
+    circuit_polarity()
+    cycle_direction()
+    field_density()

@@ -267,16 +267,18 @@ def region_between(f, g, a, b, n=200):
 _GREEK = {
     "alpha": "α", "beta": "β", "gamma": "γ", "delta": "δ", "epsilon": "ε", "theta": "θ",
     "lambda": "λ", "mu": "μ", "pi": "π", "rho": "ρ", "sigma": "σ", "tau": "τ",
-    "phi": "φ", "omega": "ω",
-}
+    "phi": "φ", "varphi": "φ", "omega": "ω", "eta": "η", "kappa": "κ", "nu": "ν", "xi": "ξ",
+    "varepsilon": "ε", "chi": "χ", "psi": "ψ", "zeta": "ζ", "ell": "ℓ",
+}   # phi と varphi は同じ字形（φ）にする。本文は varphi で書く
 _SYMBOL = {
-    "Delta": "Δ", "Omega": "Ω", "Sigma": "Σ", "cdot": "·", "times": "×", "div": "÷",
+    "Delta": "Δ", "Omega": "Ω", "Sigma": "Σ", "Phi": "Φ", "fallingdotseq": "≒", "ll": "≪",
+    "gg": "≫", "otimes": "⊗", "odot": "⊙", "cdot": "·", "times": "×", "div": "÷",
     "le": "≦", "leq": "≦", "ge": "≧", "geq": "≧", "ne": "≠", "neq": "≠", "pm": "±",
     "angle": "∠", "triangle": "△", "circ": "°", "prime": "′", "infty": "∞", "perp": "⊥",
     "parallel": "∥", "cap": "∩", "cup": "∪", "to": "→", "quad": "\u2003", ",": "\u2009",
 }
 _FUNCS = {"sin", "cos", "tan", "log", "lim", "max", "min"}
-_REL = "=<>≦≧≠"
+_REL = "=<>≦≧≠≒≪≫"
 
 
 class _Run:
@@ -355,7 +357,10 @@ def _math_runs(s, script=0, over=None):
                 put(name)
         elif c in "_^":
             body, i = _group(s, i + 1)
-            runs.extend(_math_runs(body, -1 if c == "_" else 1, over))
+            if c == "^" and body.strip() in ("\\circ", "°", "∘"):
+                put("°")    # 角度の ° は指数にしない（小さく浮いて「˚」に見える）
+            else:
+                runs.extend(_math_runs(body, -1 if c == "_" else 1, over))
         elif c == " ":
             i += 1
         elif c == "~":
@@ -407,7 +412,8 @@ def _coord_commas(text):
 def parse_label(s):
     """ラベル文字列を _Run と _Frac の列にする。"""
     runs = []
-    for k, part in enumerate(str(s).split("$")):
+    s = str(s).replace("\u02da", "°").replace("\u00ba", "°")   # ˚ º を度の記号 ° に直す
+    for k, part in enumerate(s.split("$")):
         if not part:
             continue
         if k % 2:
@@ -442,7 +448,7 @@ def _char_em(c):
         return 0.68
     if c.isdigit():
         return 0.5
-    if c in "=+−<>≦≧≠±×÷→∥⊥∠△∩∪√∞":
+    if c in "=+−<>≦≧≠≒≪≫±×÷→∥⊥∠△∩∪√∞⊗⊙":
         return 0.6
     if c in "()[],.′'·°:;":
         return 0.33
@@ -465,7 +471,24 @@ DASH = {"dash": "5 3", "hidden": "5 3", "chain": "9 3 1.5 3", "dot": "1.5 3.5"}
 _ARROW = {  # 名前: (長さ, 半幅, くびれ, 線を縮める量)
     "arr": (9.0, 3.2, 2.2, 5.0),
     "frc": (12.0, 4.4, 3.0, 7.0),
+    "dim": (7.0, 2.3, 1.6, 4.0),     # 寸法線用の小さい矢じり
 }
+DIM_OFFSET = 16   # 図形から1段目の寸法線までの距離（px）
+DIM_STEP = 20     # 寸法線の段の間隔（px）
+MIN_TEXT_PX = 12  # 最終表示での本文字の最小サイズ（px）。添字は 9px（約 7pt）
+
+
+def _arrow_kind(width):
+    """線幅に合う矢じりの種類。矢じりの幅は線幅の4倍以上にする（太線に埋もれない）。"""
+    if width <= 1.6:
+        return "arr"
+    if width <= 2.3:
+        return "frc"
+    name = "w%d" % round(width * 10)
+    if name not in _ARROW:
+        k = width / 2.2
+        _ARROW[name] = (12.0 * k, 4.4 * k, 3.0 * k, 7.0 * k)
+    return name
 _COMPASS = {"E": 0, "NE": 45, "N": 90, "NW": 135, "W": 180, "SW": 225, "S": 270, "SE": 315}
 FONT = ("'Times New Roman', Times, 'Nimbus Roman', 'Liberation Serif', "
         "'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif CJK JP', serif")
@@ -503,13 +526,16 @@ class Figure:
 
     unit は x 方向の 1 が何 px か。yunit を省くと x と同じ縮尺（グラフの既定）。
     margin は窓の外側の余白（px）。数値1つ，または (左, 右, 上, 下)。
+    display_width は教材に置くときの表示幅（px）。図の幅より小さいと全体が縮むので，
+    縮めた後の文字が最小サイズ（本文字 12px，添字 9px）を下回ると save() が警告する。
+    横長の図（レンズ，回路，数直線）では必ず指定する。
     縦横の縮尺を変えたら note() で注記を入れるか，y 軸に数値の目盛りを入れる
     （どちらも無いと save() が警告する。v-t グラフのように縦横が別の量で，
     記号だけの概形を描くときは aspect_ok=True）。
     """
 
     def __init__(self, xmin, xmax, ymin, ymax, unit=40, yunit=None, margin=28,
-                 title="", desc="", font_size=14, id=None, aspect_ok=False):
+                 title="", desc="", font_size=14, id=None, aspect_ok=False, display_width=None):
         if not (xmax > xmin and ymax > ymin):
             raise ValueError("窓の範囲が不正")
         self.xmin, self.xmax, self.ymin, self.ymax = xmin, xmax, ymin, ymax
@@ -523,6 +549,8 @@ class Figure:
         self._note = None
         self._numeric_ytick = False
         self.aspect_ok = aspect_ok
+        self.display_width = display_width   # 教材に置くときの表示幅（px）。文字の最小サイズの検査に使う
+        self.dim_offset, self.dim_step = DIM_OFFSET, DIM_STEP
         self.force_unit = 1.0   # 力の大きさ 1 を表す矢印の長さ（数学座標）
         self._forces = []
         self.title, self.desc, self.fs = title, desc, font_size
@@ -539,7 +567,13 @@ class Figure:
         return self._H0 + (self._note[1] * 2.0 if self._note else 0.0)
 
     def note(self, text, size=11):
-        """図の下に小さな注記を入れる（例 "※ 縦軸方向は拡大して描いてある"）。"""
+        """図の下に小さな注記を入れる（例 "※ 縦軸方向は拡大して描いてある"）。
+
+        注記は縮尺・模式図であることの断りを1文で書く。記号の説明や凡例は図に入れず，
+        本文のキャプションに書く。
+        """
+        if "。" in text.rstrip("。") or len(text) > 32:
+            self.warnings.append(f"注記「{text}」が長い。図の注記は1文にし，説明は本文のキャプションに書く")
         self._note = (text, size)
 
     # ---- 座標 ----
@@ -570,7 +604,7 @@ class Figure:
         return name
 
     def _path(self, pts, closed=False, style="main", dash=None, width=None, arrow=None,
-              fill=None, layer=1, register=True, cls=None, kind="arr"):
+              fill=None, layer=1, register=True, cls=None, kind=None):
         """px の点列を1本のパスとして描く。arrow は None / "end" / "start" / "both"。"""
         pts = [tuple(p) for p in pts]
         if len(pts) < 2:
@@ -580,6 +614,7 @@ class Figure:
             self._segs.extend((a, b) for a, b in zip(ring, ring[1:]))
         attrs = self._stroke(style, dash, width)
         if arrow:
+            kind = kind or _arrow_kind(width if width is not None else WIDTH[style])
             short = _ARROW[kind][3]
             if arrow in ("end", "both"):
                 a, b = pts[-2], pts[-1]
@@ -600,24 +635,51 @@ class Figure:
         d = "M" + " L".join(f"{_f(x)},{_f(y)}" for x, y in pts) + (" Z" if closed else "")
         self._put(f'<path d="{d}"{attrs}/>', layer)
 
-    def _mid_arrow(self, a, b, style, kind="arr", t=0.5):
-        """px の線分 ab の途中に進行方向の矢じりを付ける。"""
+    def _mid_arrow(self, a, b, style, kind=None, t=0.5, width=None):
+        """px の線分 ab の途中に進行方向の矢じりを付ける（大きさは線幅に合わせる）。"""
+        w = width if width is not None else WIDTH[style]
+        kind = kind or _arrow_kind(w)
+        alen, _, _, short = _ARROW[kind]
         L = math.hypot(b[0] - a[0], b[1] - a[1])
-        if L < 2 * _ARROW[kind][0]:
+        if L < 2 * alen:
+            self.warnings.append("向きの矢じり: 線が短くて矢じりを置けない（線を長くするか，横に矢印を添える）")
             return
         u = ((b[0] - a[0]) / L, (b[1] - a[1]) / L)
-        tip = (a[0] + u[0] * (L * t + 4.5), a[1] + u[1] * (L * t + 4.5))
-        tail = (tip[0] - u[0] * 8, tip[1] - u[1] * 8)
-        self._path([tail, tip], style=style, arrow="end", kind=kind, register=False)
+        tip = (a[0] + u[0] * (L * t + alen / 2), a[1] + u[1] * (L * t + alen / 2))
+        tail = (tip[0] - u[0] * (short + 3), tip[1] - u[1] * (short + 3))
+        self._path([tail, tip], style=style if style not in DASH else "aux", width=w, arrow="end",
+                   kind=kind, register=False)
 
     # ---- 線・多角形・円 ----
-    def segment(self, a, b, style="main", dash=None, arrow=None, width=None):
-        """線分 ab。arrow は None / "end" / "start" / "both" / "mid"。"""
+    def segment(self, a, b, style="main", dash=None, arrow=None, width=None, arrow_at=0.5):
+        """線分 ab。arrow は None / "end" / "start" / "both" / "mid"。
+
+        "mid" は線の途中（arrow_at の割合の位置）に a→b の向きの矢じりを置く。
+        矢じりの大きさは線幅に合わせて決まる（太い線でも埋もれない）。
+        """
         pa, pb = self.px(a), self.px(b)
         self._path([pa, pb], style=style, dash=dash, width=width,
                    arrow=None if arrow == "mid" else arrow)
         if arrow == "mid":
-            self._mid_arrow(pa, pb, style)
+            self._mid_arrow(pa, pb, style, t=arrow_at, width=width)
+
+    def mid_arrow(self, a, b, t=0.5, style="main", width=None):
+        """すでに描いた線・曲線の途中に，a→b の向きの矢じりだけを置く。
+
+        サイクル図の過程の向き，磁力線・電流の向きなど。曲線では，置きたい位置の
+        前後の2点（曲線上）を a, b に渡す。style・width は下の線と同じにする。
+        """
+        pa, pb = self.px(a), self.px(b)
+        w = width if width is not None else WIDTH[style]
+        kind = _arrow_kind(w)
+        alen, _, _, short = _ARROW[kind]
+        L = math.hypot(pb[0] - pa[0], pb[1] - pa[1])
+        u = ((pb[0] - pa[0]) / L, (pb[1] - pa[1]) / L)
+        c = (pa[0] + (pb[0] - pa[0]) * t, pa[1] + (pb[1] - pa[1]) * t)
+        tip = (c[0] + u[0] * alen / 2, c[1] + u[1] * alen / 2)
+        self._path([(tip[0] - u[0] * (short + 3), tip[1] - u[1] * (short + 3)), tip],
+                   style=style if style not in DASH else "aux", width=w, arrow="end", kind=kind,
+                   register=False)
 
     def arrow(self, a, b, style="main", dash=None):
         """a から b への矢印（ベクトルなど）。"""
@@ -641,9 +703,16 @@ class Figure:
         self.segment(p, q, style=style, dash=dash)
         return p, q
 
-    def polyline(self, pts, closed=False, style="main", dash=None, fill=None, arrow=None):
-        self._path([self.px(p) for p in pts], closed=closed, style=style, dash=dash,
-                   fill=fill, arrow=arrow)
+    def polyline(self, pts, closed=False, style="main", dash=None, fill=None, arrow=None,
+                 width=None):
+        """折れ線。arrow="mid" で各辺の中央に進行方向の矢じり（閉じた経路の向きなど）。"""
+        px = [self.px(p) for p in pts]
+        self._path(px, closed=closed, style=style, dash=dash, fill=fill, width=width,
+                   arrow=None if arrow == "mid" else arrow)
+        if arrow == "mid":
+            ring = px + [px[0]] if closed else px
+            for p, q in zip(ring, ring[1:]):
+                self._mid_arrow(p, q, style, width=width)
 
     def polygon(self, pts, style="main", dash=None, fill=None):
         """多角形。fill="#fff" で下の線を隠す，"#ddd" などで薄い灰色。"""
@@ -866,6 +935,10 @@ class Figure:
             h = fs * (1.2 if any(r.script for r in runs) else 1.0)
         if re.search(r"[\dπ]\s*/\s*\d", _plain([r for r in runs if not isinstance(r, _Frac)])):
             self.warnings.append(f"分数「{text}」が斜線になっている。\\frac{{分子}}{{分母}} で縦組みにする")
+        plain = _plain(runs)
+        if sum(1 for c in plain if ord(c) >= 0x3040) >= 12 or "。" in plain or "，" in plain:
+            self.warnings.append(f"図中の文「{text}」は説明文になっている。図中は記号と短い名称だけにし，"
+                                 "説明・凡例・式は本文のキャプションに書く")
         self._labels.append(dict(text=text, runs=runs, fs=fs, w=w, h=h, anchor=anchor,
                                  d=dsvg, dist=dist, bg=bg, away=away))
 
@@ -933,6 +1006,15 @@ class Figure:
             boxes.append(self._box(L, L["c"]))
             if best[0] >= 60:
                 self.warnings.append(f"ラベル「{L['text']}」の置き場が無い（dir を指定するか図を広げる）")
+        # ラベルどうしが接している（箱の間が 2px 未満）ものを知らせる
+        Ls = [L for L in self._labels if not L.get("plain")]
+        for i, A in enumerate(Ls):
+            a = self._box(A, A["c"], 1.0)
+            for B in Ls[i + 1:]:
+                b = self._box(B, B["c"], 1.0)
+                if min(a[2], b[2]) - max(a[0], b[0]) > 0 and min(a[3], b[3]) - max(a[1], b[1]) > 0:
+                    self.warnings.append(f"ラベル「{A['text']}」と「{B['text']}」が接している・重なっている。"
+                                         "離すか，leader() で引き出し線を付ける")
 
     def _runs_svg(self, runs, ax, x, base, fs, anchor, attrs=""):
         """_Run の列を1つの <text> にする。ax は基準の x，x は左端（上付きの線の位置用）。"""
@@ -973,6 +1055,7 @@ class Figure:
         out = []
         if L["bg"]:
             b = self._box(L, L["c"], 1.5)
+            b = (b[0] - 1.5, b[1], b[2] + 1.5, b[3])     # 斜体の張り出しの分だけ左右を広く
             out.append(f'<rect x="{_f(b[0])}" y="{_f(b[1])}" width="{_f(b[2] - b[0])}" '
                        f'height="{_f(b[3] - b[1])}" fill="#fff" stroke="none"/>')
         skip = ' data-lint="skip"' if L["bg"] else ""
@@ -1065,18 +1148,154 @@ class Figure:
                         (c[0] - u[0] * size + u[1] * size, c[1] - u[1] * size - u[0] * size)],
                        style="aux")
 
-    def dimension(self, a, b, label, offset=14, side=1):
-        """寸法線（両矢印＋長さのラベル）。side=1 で a→b の左側，-1 で右側に offset px ずらす。"""
-        pa, pb = self.px(a), self.px(b)
-        L = math.hypot(pb[0] - pa[0], pb[1] - pa[1])
-        n = ((pb[1] - pa[1]) / L * side, -(pb[0] - pa[0]) / L * side)
-        qa = (pa[0] + n[0] * offset, pa[1] + n[1] * offset)
-        qb = (pb[0] + n[0] * offset, pb[1] + n[1] * offset)
-        self._path([qa, qb], style="thin", width=0.8, arrow="both")
-        for p, q in ((pa, qa), (pb, qb)):
-            self._path([(p[0] + n[0] * 3, p[1] + n[1] * 3), (q[0] + n[0] * 3, q[1] + n[1] * 3)],
-                       style="thin")
-        self._add_label(label, ((qa[0] + qb[0]) / 2, (qa[1] + qb[1]) / 2), (0.0, 0.0), 0, bg=True)
+    @staticmethod
+    def _label_extent(label, fs, u):
+        """ラベルが向き u（px の単位ベクトル）の線に沿って占める長さ。"""
+        runs = parse_label(label)
+        w = sum(_run_width(r, fs) for r in runs)
+        h = fs * (2.15 if any(isinstance(r, _Frac) for r in runs) else 1.0)
+        return abs(u[0]) * w + abs(u[1]) * h
+
+    def _dim_frame(self, pts, side, axis):
+        """寸法線の向き u，図形から離れる向き n（px），各点の n 方向の深さ，その最大を返す。"""
+        px = [self.px(p) for p in pts]
+        d = (px[-1][0] - px[0][0], px[-1][1] - px[0][1])
+        if axis == "x":
+            u = (1.0 if d[0] >= 0 else -1.0, 0.0)
+        elif axis == "y":
+            u = (0.0, 1.0 if d[1] >= 0 else -1.0)
+        elif axis is None:
+            L = math.hypot(*d)
+            u = (d[0] / L, d[1] / L)
+        else:
+            raise ValueError('axis は None / "x" / "y"')
+        n = (u[1] * side, -u[0] * side)
+        depth = [p[0] * n[0] + p[1] * n[1] for p in px]
+        return px, u, n, depth, max(depth)
+
+    def dimension(self, a, b, label, offset=None, side=1, row=0, arrows="auto", label_at="auto",
+                  ext=True, size=None, axis=None, _ends=None, _base=None):
+        """寸法線（長さを示す両矢印＋ラベル）。図形から離した段に置く。
+
+        side:  1 で a→b の左側，-1 で右側に寸法線を出す。
+        row:   段。0 が図形に最も近く，1, 2, … と外へ dim_step（20px）ずつ離れる。
+               1つの辺に沿う寸法は同じ段にそろえ，全体の長さは外側の段に置く。
+        offset: 図形から row=0 の寸法線までの距離（px）。省略時は dim_offset（16px）。
+               寸法線が図形のほかの部分（レンズの下端，物体の角）を横切るときは，a, b を
+               その部分の端の点に取り，axis で測る向きを指定する。
+        axis:  None は ab に沿う長さ。"x" は水平距離，"y" は鉛直距離（a, b の高さが違っても
+               寸法線は水平・鉛直になり，補助線が a, b それぞれから伸びる）。
+        arrows: "in" は矢じりを内側に置く普通の形。"out" は矢じりを外側に置いて内向きにする形
+               （短い区間用）。"auto" は長さで決める。
+        label_at: "center"（線の中央，白い下地），"out"（寸法線の外側＝図形と反対側），
+               "a" / "b"（a 側・b 側の外）。"auto" は入るなら中央，入らなければ "out"。
+        短い区間に普通の両矢印を押し込むと矢じりと文字が詰まるので，"auto" に任せるか，
+        図の縮尺を上げる。連続する寸法は dimension_chain() を使う。
+        """
+        (pa, pb), u, n, (da, db), base = self._dim_frame([a, b], side, axis)
+        if _base is not None:
+            base = _base
+        off = (self.dim_offset if offset is None else offset) + row * self.dim_step
+        qa = (pa[0] + n[0] * (base + off - da), pa[1] + n[1] * (base + off - da))
+        qb = (pb[0] + n[0] * (base + off - db), pb[1] + n[1] * (base + off - db))
+        L = math.hypot(qb[0] - qa[0], qb[1] - qa[1])
+        if L < 1:
+            raise ValueError("dimension: 2点の間隔が 0（axis の向きを確かめる）")
+        fs = size or self.fs
+        lw = self._label_extent(label, fs, u)
+        alen = _ARROW["dim"][0]
+        fits_in = L >= lw + 2 * alen + 8          # 矢じり2個と文字が内側に入る
+        if arrows == "auto":
+            arrows = "in" if fits_in else "out"
+        if arrows == "in" and L < 2 * alen + 4:
+            self.warnings.append(f"寸法「{label}」: 区間が短く矢じりがつぶれる。arrows=\"out\" にするか縮尺を上げる")
+        if label_at == "auto":
+            label_at = "center" if (fits_in if arrows == "in" else L >= lw + 6) else "out"
+        if arrows == "in" and label_at == "center" and not fits_in:
+            self.warnings.append(f"寸法「{label}」: 矢じりと文字が詰まる。label_at=\"out\" にするか arrows=\"out\" にする")
+        ea, eb = _ends or (arrows, arrows)        # 両端それぞれ "in" / "out" / "none" / "dot"
+        tail = 13
+        if ext:
+            for p, q in ((pa, qa), (pb, qb)):
+                self._path([(p[0] + n[0] * 3, p[1] + n[1] * 3),
+                            (q[0] + n[0] * 4, q[1] + n[1] * 4)], style="thin")
+        self._path([qa, qb], style="thin", width=0.8, kind="dim",
+                   arrow={(True, True): "both", (True, False): "start", (False, True): "end"}.get(
+                       (ea == "in", eb == "in")))
+        for q, e, sg in ((qa, ea, -1), (qb, eb, 1)):
+            if e == "out":      # 外側から内向きの矢じり
+                self._path([(q[0] + u[0] * sg * tail, q[1] + u[1] * sg * tail), q],
+                           style="thin", width=0.8, arrow="end", kind="dim")
+            elif e == "dot":
+                self._put(f'<circle cx="{_f(q[0])}" cy="{_f(q[1])}" r="1.5" fill="#000" stroke="none"/>', 2)
+        mid = ((qa[0] + qb[0]) / 2, (qa[1] + qb[1]) / 2)
+        if label_at == "center":
+            self._add_label(label, mid, (0.0, 0.0), 0, size, bg=True)
+        elif label_at == "out":
+            self._add_label(label, mid, n, 4, size)
+        elif label_at in ("a", "b"):
+            sg, q, e = (-1, qa, ea) if label_at == "a" else (1, qb, eb)
+            d = tail + 3 if e == "out" else 5
+            self._add_label(label, q, (u[0] * sg, u[1] * sg), d, size)
+        else:
+            raise ValueError("label_at は auto / center / out / a / b")
+
+    def dimension_chain(self, pts, labels, side=1, row=0, offset=None, size=None, axis=None):
+        """一直線上に並ぶ点 pts の間の寸法を，同じ段に続けて描く（labels は区間ごと）。
+
+        短い区間は自分の矢じりを持たず，隣の区間の矢じりが境界を示す（矢じりが重ならない）。
+        列の端にある短い区間は，外側から内向きの矢じりにする。文字が入らない区間の
+        ラベルは寸法線の外側に出る。None のラベルの区間は描かない。
+        axis="x"（"y"）にすると水平（鉛直）距離を測り，高さの違う点（レンズの下端，
+        スクリーンの下端，軸上の点）から補助線を下ろして1本の段にそろえる。
+        """
+        if len(labels) != len(pts) - 1:
+            raise ValueError("labels は区間の数（点の数 − 1）だけ渡す")
+        fs = size or self.fs
+        alen = _ARROW["dim"][0]
+        px, u, n, depth, base = self._dim_frame(pts, side, axis)
+        short = []
+        for (p, q), lab in zip(zip(px, px[1:]), labels):
+            if lab is None:
+                short.append(None)
+                continue
+            L = abs((q[0] - p[0]) * u[0] + (q[1] - p[1]) * u[1])
+            short.append(L < self._label_extent(lab, fs, u) + 2 * alen + 8)
+        for k, lab in enumerate(labels):
+            if lab is None:
+                continue
+            if not short[k]:
+                self.dimension(pts[k], pts[k + 1], lab, offset, side, row, arrows="in", size=size,
+                               axis=axis, _base=base)
+                continue
+            ends = []
+            for nb in (k - 1, k + 1):
+                if nb < 0 or nb >= len(labels) or short[nb] is None:
+                    ends.append("out")       # 列の端：外側から内向きの矢じり
+                elif short[nb]:
+                    ends.append("dot")       # 短い区間が続く：境界は黒点
+                else:
+                    ends.append("none")      # 隣の区間の矢じりが境界を示す
+            self.dimension(pts[k], pts[k + 1], lab, offset, side, row, arrows="out", size=size,
+                           axis=axis, _ends=tuple(ends), _base=base)
+
+    def leader(self, text, target, at, dir=None, arrow=False, dot=False, gap=3, size=None):
+        """引き出し線つきのラベル。対象 target を細い線で指し，文字は離れた at の先に置く。
+
+        近接する2曲線の名前，寸法線から離れた「高さ w/5」のような注記，混み合う場所の
+        ラベルに使う。arrow=True で対象側に矢じり，dot=True で対象に小さな黒点。
+        文字は at から target と反対の向きへ gap px 離して置く（dir で変えられる）。
+        """
+        pt, pa = self.px(target), self.px(at)
+        L = math.hypot(pa[0] - pt[0], pa[1] - pt[1])
+        if L < 8:
+            raise ValueError("leader: target と at が近すぎる（引き出し線は 8px 以上）")
+        u = ((pa[0] - pt[0]) / L, (pa[1] - pt[1]) / L)
+        start = pt if (arrow or dot) else (pt[0] + u[0] * 2, pt[1] + u[1] * 2)
+        self._path([pa, start], style="thin", width=0.7, arrow="end" if arrow else None, kind="dim")
+        if dot:
+            self._put(f'<circle cx="{_f(pt[0])}" cy="{_f(pt[1])}" r="1.8" fill="#000" stroke="none"/>', 2)
+        self._add_label(text, pa, self._dir(dir) if dir is not None else u, gap, size)
 
     # ---- ハッチング ----
     def hatch(self, region, angle=45, spacing=5, intersect=(), exclude=(), width=0.6):
@@ -1189,7 +1408,7 @@ class Figure:
         L = math.hypot(pb[0] - pa[0], pb[1] - pa[1])
         n = ((pb[1] - pa[1]) / L * shift, -(pb[0] - pa[0]) / L * shift)
         pa, pb = (pa[0] + n[0], pa[1] + n[1]), (pb[0] + n[0], pb[1] + n[1])
-        self._path([pa, pb], style="force", arrow="end", kind="frc")
+        self._path([pa, pb], style="force", arrow="end", kind="frc")  # 力は 2.2 の線に幅 8.8 の矢じり
         if dot:
             self._put(f'<circle cx="{_f(pa[0])}" cy="{_f(pa[1])}" r="2.4" fill="#000" stroke="none"/>', 2)
         if label:
@@ -1270,6 +1489,41 @@ class Figure:
             self._put(f'<circle cx="{_f(x)}" cy="{_f(y)}" r="1.6" fill="#000" stroke="none"/>')
         self._dots.append((x, y))
 
+    def field_grid(self, x0, x1, y0, y1, nx, ny, into=True, strength=None, axis="x", r=5):
+        """紙面に垂直な磁場の印（⊗ / ⊙）を長方形の範囲に並べる。戻り値は印の位置の列。
+
+        strength を省くと等間隔（一様な磁場）。strength に位置の関数（例 lambda x: 1 / x）を
+        渡すと，axis（"x" か "y"）方向の列の間隔を強さに反比例させる。強い所ほど印が密になり，
+        「近いほど強い」が図から読める。強さが変わる磁場を等間隔の印で描かない。
+        """
+        def cells(lo, hi, m, f):
+            if f is None:
+                return [lo + (hi - lo) * (i + 0.5) / m for i in range(m)]
+            N = 800
+            xs = [lo + (hi - lo) * (j + 0.5) / N for j in range(N)]
+            cum, tot = [], 0.0
+            for x in xs:
+                tot += abs(f(x))
+                cum.append(tot)
+            out, j = [], 0
+            for i in range(m):
+                goal = tot * (i + 0.5) / m
+                while cum[j] < goal:
+                    j += 1
+                out.append(xs[j])
+            return out
+
+        xs = cells(x0, x1, nx, strength if axis == "x" else None)
+        ys = cells(y0, y1, ny, strength if axis == "y" else None)
+        gaps = [abs(b - a) * self.ux for a, b in zip(xs, xs[1:])] + \
+               [abs(b - a) * self.uy for a, b in zip(ys, ys[1:])]
+        if gaps and min(gaps) < 2 * r + 2:
+            self.warnings.append("field_grid: 印どうしが接する。nx・ny を減らすか r を小さくする")
+        pts = [(x, y) for y in ys for x in xs]
+        for p in pts:
+            self.field_mark(p, into=into, r=r)
+        return pts
+
     # ---- 物理：回路（JIS C 0617） ----
     def wire(self, *pts):
         """導線（折れ線）。"""
@@ -1308,19 +1562,47 @@ class Figure:
         if variable:
             self._path([P(-13, -11), P(13, 11)], style="circuit", width=1.0, arrow="end", register=False)
 
-    def capacitor(self, a, b, label=None, side=1):
-        """コンデンサ（同じ長さの平行な2線）。"""
+    def _beside(self, P, s, t, text, size=12):
+        """素子の軸方向 s・法線方向 t（px）の位置から，導線と極板を避ける斜め外向きに文字を置く。"""
+        o, e = P(0, 0), P(s, t)
+        d = ((1 if e[0] - o[0] > 0.5 else -1 if e[0] - o[0] < -0.5 else 0),
+             (1 if e[1] - o[1] > 0.5 else -1 if e[1] - o[1] < -0.5 else 0))
+        n = math.hypot(*d)
+        self._add_label(text, e, (d[0] / n, d[1] / n), 0, size)
+
+    def capacitor(self, a, b, label=None, side=1, charges=None, charge_side=None):
+        """コンデンサー（同じ長さの平行な2線）。
+
+        charges=("$+Q$", "$-Q$") で，a 側・b 側の極板のそばに電荷を書く。極板の電荷の
+        符号が問題で意味を持つとき（充電の向き，電気量保存，つなぎ替え）は必ず書く。
+        charge_side は電荷を書く側（1 が a→b の左，-1 が右）。省略時は label の反対側。
+        """
         P, m, u, n = self._component(a, b, 3, 11, label, side)
         self._path([P(-3, -11), P(-3, 11)], style="circuit", width=1.5, register=False)
         self._path([P(3, -11), P(3, 11)], style="circuit", width=1.5, register=False)
+        if charges:
+            cs = charge_side if charge_side is not None else -side
+            for text, sg in zip(charges, (-1, 1)):
+                if text:
+                    self._beside(P, sg * 8, cs * 5, text, size=self.fs)
 
-    def battery(self, a, b, label=None, side=1, plus_at_a=True):
-        """電池・直流電源。長く細い線が正極，短く太い線が負極。plus_at_a=True で a 側が正極。"""
+    def battery(self, a, b, label=None, side=1, plus_at_a=True, polarity=False, polarity_side=None):
+        """電池・直流電源。長く細い線が正極，短く太い線が負極。plus_at_a=True で a 側が正極。
+
+        polarity=True で，長い線（正極）の側に「＋」，短い線（負極）の側に「−」を書く。
+        電流・起電力の向きや極板の電荷の符号を論じる図では必ず True にする。
+        polarity_side は記号を書く側（1 が a→b の左，-1 が右）。省略時は label の反対側。
+        """
         P, m, u, n = self._component(a, b, 3, 12, label, side)
         sp = -3 if plus_at_a else 3
         self._path([P(sp, -12), P(sp, 12)], style="circuit", width=1.2, register=False)
         self._put(f'<path d="M{_f(P(-sp, -6)[0])},{_f(P(-sp, -6)[1])} L{_f(P(-sp, 6)[0])},{_f(P(-sp, 6)[1])}" '
                   f'stroke-width="3" stroke-linecap="butt"/>')
+        if polarity:
+            ps = polarity_side if polarity_side is not None else -side
+            sg = -1 if plus_at_a else 1
+            self._beside(P, sg * 8, ps * 4, "+", size=13)
+            self._beside(P, -sg * 8, ps * 4, "−", size=13)
 
     def inductor(self, a, b, label=None, side=1, bumps=4, r=5):
         """コイル（半円を並べる。旧記号のループは使わない）。"""
@@ -1408,7 +1690,22 @@ class Figure:
                 and not self._numeric_ytick and msg not in self.warnings):
             self.warnings.append(msg)
         W, H, i = _f(self.W), _f(self.H), self.id
-        out = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" '
+        k = min(1.0, self.display_width / self.W) if self.display_width else 1.0
+        sizes = [L["fs"] for L in self._labels] or [self.fs]
+        script = any(not isinstance(r, _Frac) and r.script for L in self._labels for r in L["runs"])
+        self.warnings = [w for w in self.warnings if not w.startswith("文字の大きさ")]
+        if min(sizes) * k < MIN_TEXT_PX - 0.05 or (script and min(sizes) * 0.7 * k < 9 - 0.05):
+            need = max(MIN_TEXT_PX, 9 / 0.7 if script else 0) / k
+            self.warnings.append(
+                f"文字の大きさ: 表示幅 {_f(self.W * k)}px で最小の文字が {min(sizes) * k:.1f}px になる"
+                f"（本文字 {MIN_TEXT_PX}px・添字 9px 以上にする）。unit を下げて図の幅を表示幅に合わせるか，"
+                f"font_size={math.ceil(need)} 以上にする")
+        elif not self.display_width and self.W > 560:
+            self.warnings.append(
+                f"文字の大きさ: 図の幅が {_f(self.W)}px ある。教材の表示幅に縮めると文字が小さくなるので，"
+                "Figure(display_width=表示幅) を指定して確かめる")
+        dw, dh = _f(self.W * k), _f(self.H * k)
+        out = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{dw}" height="{dh}" '
                f'viewBox="0 0 {W} {H}" role="img" aria-labelledby="{i}-t {i}-d">',
                f'<title id="{i}-t">{escape(self.title or "図")}</title>',
                f'<desc id="{i}-d">{escape(self.desc or self.title or "図")}</desc>']

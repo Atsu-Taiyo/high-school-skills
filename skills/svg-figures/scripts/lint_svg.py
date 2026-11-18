@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """教材用 SVG の機械検査（Python 標準ライブラリのみ）。
 
-    python3 lint_svg.py fig.svg [fig2.svg ...] [--strict]
+    python3 lint_svg.py fig.svg [fig2.svg ...] [--strict] [--display-width=400]
+
+--display-width は教材に置くときの表示幅（px）。図がそれより広いと縮めて表示されるので，
+縮めた後の文字の大きさで「文字が小さい」を判定する（横長の図では必ず付ける）。
 
 検査すること
   ERROR  整形式でない／ルートが svg でない／viewBox が無い・不正／<title> が無い
@@ -11,6 +14,7 @@
          文字どうしの重なり／文字と線の重なり／線が viewBox の外に出ている
          斜線の分数（5/6 など）／座標のカンマの後に空白が無い（(0,0,2) など）
          白黒以外の色／<foreignObject>・<image> の使用
+         図中の説明文（長い和文，句読点のある文）／2文以上の注記／度の記号が「˚」「º」
 
 文字の箱は字数と font-size からの概算なので，重なりの指摘は「見に行く場所」の案内と考える。
 最終判断は PNG にして目で見る。class="hatch" の要素と data-lint="skip" の付いた要素
@@ -266,8 +270,8 @@ def is_gray(v):
     return bool(m) and m.group(1) == m.group(2) == m.group(3)
 
 
-def lint(path):
-    """(errors, warnings) を返す。"""
+def lint(path, display_width=None):
+    """(errors, warnings) を返す。display_width は教材に置くときの表示幅（px）。"""
     E, Wn = [], []
     try:
         root = ET.parse(path).getroot()
@@ -319,6 +323,8 @@ def lint(path):
     scale = 1.0
     if vb and root.get("width"):
         scale = length(root.get("width"), vb[2]) / vb[2]
+    if vb and display_width:
+        scale = min(scale, display_width / vb[2])
 
     texts, segs, colors = [], [], set()
     ids = {}
@@ -415,6 +421,16 @@ def lint(path):
         if t["fs"] * scale < 9:
             Wn.append(f"文字「{t['s']}」が小さい（表示 {t['fs'] * scale:.1f}px。9px＝約 7pt 以上にする）")
     for t in texts:
+        if "\u02da" in t["s"] or "\u00ba" in t["s"]:
+            Wn.append(f"文字「{t['s']}」の度の記号が「˚」「º」になっている（「°」U+00B0 を使う）")
+        body = t["s"].strip()
+        cjk = sum(1 for c in body if ord(c) >= 0x3040)
+        if body.startswith("※"):
+            if "。" in body.rstrip("。"):
+                Wn.append(f"注記「{body}」が2文以上ある（図の注記は1文。説明は本文のキャプションへ）")
+        elif cjk >= 12 or "。" in body or "，" in body:
+            Wn.append(f"文字「{body}」は説明文になっている（図中は記号と短い名称だけ。説明・凡例は本文のキャプションへ）")
+    for t in texts:
         if re.search(r"[\dπ]\s*/\s*\d", t["s"]):
             Wn.append(f"文字「{t['s']}」に斜線の分数がある（分数は分子・括線・分母の縦組みにする）")
         if re.search(r"\([^()]*,\S", t["s"]):
@@ -442,12 +458,13 @@ def lint(path):
 def main(argv):
     strict = "--strict" in argv
     files = [a for a in argv if not a.startswith("--")]
+    dw = next((float(a.split("=", 1)[1]) for a in argv if a.startswith("--display-width=")), None)
     if not files:
         print(__doc__)
         return 2
     code = 0
     for path in files:
-        E, Wn = lint(path)
+        E, Wn = lint(path, dw)
         for m in E:
             print(f"{path}: ERROR {m}")
         for m in Wn:
