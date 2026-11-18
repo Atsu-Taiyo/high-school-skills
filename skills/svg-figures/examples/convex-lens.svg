@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="531.2" height="218.8" viewBox="0 0 531.2 218.8" role="img" aria-labelledby="f42ae2d-t f42ae2d-d">
+<title id="f42ae2d-t">凸レンズによる実像</title>
+<desc id="f42ae2d-d">焦点距離 f の凸レンズの前方，焦点の外側に置いた物体から出た3本の光線が，レンズの後方で倒立の実像を結ぶ図</desc>
+<defs>
+<marker id="f42ae2d-arr-e" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="6.4" refX="4" refY="3.2" orient="auto" overflow="visible"><path d="M0,0 L9,3.2 L0,6.4 L2.2,3.2 Z" fill="#000" stroke="none"/></marker>
+</defs>
+<rect x="0" y="0" width="531.2" height="218.8" fill="#fff"/>
+<g fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+<path d="M28,116 L503.2,116" stroke-width="1" stroke-dasharray="9 3 1.5 3" stroke-linecap="butt"/>
+<path d="M300.8,39 A427,427 0 0 1 300.8,193 A427,427 0 0 1 300.8,39 Z" stroke-width="1.2" fill="#fff"/>
+<path d="M80.8,116 L80.8,68.2" stroke-width="1.5" marker-end="url(#f42ae2d-arr-e)"/>
+<path d="M447.47,116 L447.47,146.2" stroke-width="1.5" marker-end="url(#f42ae2d-arr-e)"/>
+<path d="M80.8,63.2 L300.8,63.2 L447.47,151.2" stroke-width="1"/>
+<path d="M187.3,63.2 L190.3,63.2" stroke-width="1" marker-end="url(#f42ae2d-arr-e)"/>
+<path d="M371.13,105.4 L373.7,106.94" stroke-width="1" marker-end="url(#f42ae2d-arr-e)"/>
+<path d="M80.8,63.2 L447.47,151.2" stroke-width="1"/>
+<path d="M260.73,106.38 L263.65,107.08" stroke-width="1" marker-end="url(#f42ae2d-arr-e)"/>
+<path d="M80.8,63.2 L300.8,151.2 L447.47,151.2" stroke-width="1"/>
+<path d="M143.55,88.3 L146.34,89.41" stroke-width="1" marker-end="url(#f42ae2d-arr-e)"/>
+<path d="M341.3,151.2 L344.3,151.2" stroke-width="1" marker-end="url(#f42ae2d-arr-e)"/>
+<circle cx="212.8" cy="116" r="2.6" fill="#000" stroke="none"/>
+<circle cx="388.8" cy="116" r="2.6" fill="#000" stroke="none"/>
+</g>
+<g font-family="'Times New Roman', Times, 'Nimbus Roman', 'Liberation Serif', 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif CJK JP', serif" font-size="14" fill="#000" stroke="none" text-anchor="middle">
+<text x="212.8" y="133.62" xml:space="preserve">F</text>
+<text x="388.8" y="133.62" xml:space="preserve">F′</text>
+<text x="287.55" y="136.11" xml:space="preserve">O</text>
+<text x="80.8" y="55.16" font-size="12" xml:space="preserve">物体</text>
+<text x="447.47" y="167.16" font-size="12" xml:space="preserve">実像</text>
+</g>
+</svg>

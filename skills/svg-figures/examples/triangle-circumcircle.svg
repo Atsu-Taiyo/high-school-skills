@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="355.2" height="311.2" viewBox="0 0 355.2 311.2" role="img" aria-labelledby="f2915bb-t f2915bb-d">
+<title id="f2915bb-t">三角形 ABC と外接円</title>
+<desc id="f2915bb-d">三角形 ABC の外接円（中心 O），A から BC に下ろした垂線 AH，BC の中点 M を示した図</desc>
+<rect x="0" y="0" width="355.2" height="311.2" fill="#fff"/>
+<g fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+<circle cx="177.6" cy="173.2" r="118.47" stroke-width="1"/>
+<path d="M146.8,58.8 L67.6,217.2 L287.6,217.2 Z" stroke-width="1.5"/>
+<path d="M146.8,58.8 L146.8,217.2" stroke-width="1" stroke-dasharray="5 3" stroke-linecap="butt"/>
+<path d="M146.8,209.2 L154.8,209.2 L154.8,217.2" stroke-width="1"/>
+<path d="M177.6,173.2 L177.6,217.2" stroke-width="1" stroke-dasharray="5 3" stroke-linecap="butt"/>
+<path d="M177.6,209.2 L185.6,209.2 L185.6,217.2" stroke-width="1"/>
+<path d="M122.6,222.2 L122.6,212.2" stroke-width="1"/>
+<path d="M232.6,222.2 L232.6,212.2" stroke-width="1"/>
+<path d="M83.6,217.2 L83.52,215.59 L83.28,214 L82.88,212.44 L82.32,210.93 L81.62,209.48 L80.77,208.11 L79.79,206.84 L78.69,205.66 L77.47,204.61 L76.16,203.68 L74.76,202.89" stroke-width="1"/>
+<circle cx="146.8" cy="58.8" r="2.6" fill="#000" stroke="none"/>
+<circle cx="67.6" cy="217.2" r="2.6" fill="#000" stroke="none"/>
+<circle cx="287.6" cy="217.2" r="2.6" fill="#000" stroke="none"/>
+<circle cx="146.8" cy="217.2" r="2.6" fill="#000" stroke="none"/>
+<circle cx="177.6" cy="217.2" r="2.6" fill="#000" stroke="none"/>
+<circle cx="177.6" cy="173.2" r="2.6" fill="#000" stroke="none"/>
+</g>
+<g font-family="'Times New Roman', Times, 'Nimbus Roman', 'Liberation Serif', 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif CJK JP', serif" font-size="14" fill="#000" stroke="none" text-anchor="middle">
+<text x="87.12" y="206.31" xml:space="preserve"><tspan font-style="italic">θ</tspan></text>
+<text x="146.8" y="50.42" xml:space="preserve">A</text>
+<text x="57.3" y="228.13" xml:space="preserve">B</text>
+<text x="297.9" y="228.13" xml:space="preserve">C</text>
+<text x="146.8" y="234.82" xml:space="preserve">H</text>
+<text x="177.6" y="234.82" xml:space="preserve">M</text>
+<text x="186.6" y="166.58" xml:space="preserve">O</text>
+</g>
+</svg>

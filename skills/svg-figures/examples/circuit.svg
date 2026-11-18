@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="443.2" height="249.6" viewBox="0 0 443.2 249.6" role="img" aria-labelledby="f0b7e0a-t f0b7e0a-d">
+<title id="f0b7e0a-t">直流回路</title>
+<desc id="f0b7e0a-d">電池 E，スイッチ S，抵抗 R，電球，電流計を直列につなぎ，電球に電圧計を並列につないだ回路図</desc>
+<rect x="0" y="0" width="443.2" height="249.6" fill="#fff"/>
+<g fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+<path d="M54.4,58.8 L54.4,121.8" stroke-width="1.2"/>
+<path d="M54.4,127.8 L54.4,190.8" stroke-width="1.2"/>
+<path d="M42.4,121.8 L66.4,121.8" stroke-width="1.2"/>
+<path d="M48.4,127.8 L60.4,127.8" stroke-width="3" stroke-linecap="butt"/>
+<path d="M54.4,58.8 L99.6,58.8" stroke-width="1.2"/>
+<path d="M123.6,58.8 L168.8,58.8" stroke-width="1.2"/>
+<path d="M99.6,58.8 L121.6,49.8" stroke-width="1.2"/>
+<path d="M168.8,58.8 L228.6,58.8" stroke-width="1.2"/>
+<path d="M258.6,58.8 L318.4,58.8" stroke-width="1.2"/>
+<path d="M228.6,63.8 L258.6,63.8 L258.6,53.8 L228.6,53.8 Z" stroke-width="1.2" fill="#fff"/>
+<path d="M318.4,58.8 L318.4,115.8" stroke-width="1.2"/>
+<path d="M318.4,133.8 L318.4,190.8" stroke-width="1.2"/>
+<circle cx="318.4" cy="124.8" r="9" fill="#fff" stroke-width="1.2"/>
+<path d="M312.04,118.44 L324.76,131.16 M312.04,131.16 L324.76,118.44" stroke-width="1.2"/>
+<path d="M318.4,190.8 L196.4,190.8" stroke-width="1.2"/>
+<path d="M176.4,190.8 L54.4,190.8" stroke-width="1.2"/>
+<circle cx="186.4" cy="190.8" r="10" fill="#fff" stroke-width="1.2"/>
+<path d="M318.4,58.8 L388.8,58.8" stroke-width="1.2"/>
+<path d="M388.8,58.8 L388.8,114.8" stroke-width="1.2"/>
+<path d="M388.8,134.8 L388.8,190.8" stroke-width="1.2"/>
+<circle cx="388.8" cy="124.8" r="10" fill="#fff" stroke-width="1.2"/>
+<path d="M388.8,190.8 L318.4,190.8" stroke-width="1.2"/>
+<circle cx="318.4" cy="58.8" r="2.2" fill="#000" stroke="none"/>
+<circle cx="318.4" cy="190.8" r="2.2" fill="#000" stroke="none"/>
+</g>
+<g font-family="'Times New Roman', Times, 'Nimbus Roman', 'Liberation Serif', 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif CJK JP', serif" font-size="14" fill="#000" stroke="none" text-anchor="middle">
+<text x="33.64" y="129.42" xml:space="preserve"><tspan font-style="italic">E</tspan></text>
+<text x="111.6" y="43.42" xml:space="preserve">S</text>
+<text x="243.6" y="47.42" xml:space="preserve"><tspan font-style="italic">R</tspan></text>
+<rect x="180.9" y="183.3" width="11" height="15" fill="#fff" stroke="none"/><text x="186.48" y="194.76" data-lint="skip" font-size="12" xml:space="preserve">A</text>
+<rect x="383.3" y="117.3" width="11" height="15" fill="#fff" stroke="none"/><text x="388.88" y="128.76" data-lint="skip" font-size="12" xml:space="preserve">V</text>
+</g>
+</svg>
