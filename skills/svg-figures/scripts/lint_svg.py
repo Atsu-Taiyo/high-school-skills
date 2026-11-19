@@ -1,16 +1,21 @@
 #!/usr/bin/env python3
 """教材用 SVG の機械検査（Python 標準ライブラリのみ）。
 
-    python3 lint_svg.py fig.svg [fig2.svg ...] [--strict] [--display-width=400]
+    python3 lint_svg.py fig.svg [fig2.svg ...] [--strict] [--display-width=650]
 
---display-width は教材に置くときの表示幅（px）。図がそれより広いと縮めて表示されるので，
-縮めた後の文字の大きさで「文字が小さい」を判定する（横長の図では必ず付ける）。
+--display-width は教材に置くときの表示幅（px。省略時は 650）。図（viewBox の幅 W）がそれより
+広いと縮めて表示されるので，縮めた後の大きさで文字と寸法を判定する。基準は
+  最小の文字（添字・指数・注記を含む）  12px 以上  ＝ font-size ≧ 12 × max(1, W ÷ 表示幅)
+  本文字（ラベル）                      16px 以上  ＝ font-size ≧ 16 × max(1, W ÷ 表示幅)
+  寸法を付ける区間                      28px 以上
 
 検査すること
   ERROR  整形式でない／ルートが svg でない／viewBox が無い・不正／<title> が無い
          外部参照（外部の href，@import，url(http…)，@font-face，<script>）
          文字が viewBox の外にはみ出している／描画要素が1つも無い
-  WARN   <desc>・role="img" が無い／width・height が無い／文字が小さい（約 7pt 未満）
+  WARN   <desc>・role="img" が無い／width・height が無い
+         文字が小さい（上の基準。添字の <tspan> も調べる）／寸法の区間が短い
+         引き出し線が他の線・斜線の領域を横切る／太い矢印（力）が文字に接している
          文字どうしの重なり／文字と線の重なり／線が viewBox の外に出ている
          斜線の分数（5/6 など）／座標のカンマの後に空白が無い（(0,0,2) など）
          白黒以外の色／<foreignObject>・<image> の使用
@@ -270,6 +275,17 @@ def is_gray(v):
     return bool(m) and m.group(1) == m.group(2) == m.group(3)
 
 
+MIN_TEXT_PX, MIN_BODY_PX, MIN_DIM_PX, DISPLAY_WIDTH = 12.0, 16.0, 28.0, 650.0
+
+
+def _cross(p, q, a, b):
+    d1 = (q[0] - p[0]) * (a[1] - p[1]) - (q[1] - p[1]) * (a[0] - p[0])
+    d2 = (q[0] - p[0]) * (b[1] - p[1]) - (q[1] - p[1]) * (b[0] - p[0])
+    d3 = (b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0])
+    d4 = (b[0] - a[0]) * (q[1] - a[1]) - (b[1] - a[1]) * (q[0] - a[0])
+    return d1 * d2 < 0 and d3 * d4 < 0
+
+
 def lint(path, display_width=None):
     """(errors, warnings) を返す。display_width は教材に置くときの表示幅（px）。"""
     E, Wn = [], []
@@ -323,10 +339,11 @@ def lint(path, display_width=None):
     scale = 1.0
     if vb and root.get("width"):
         scale = length(root.get("width"), vb[2]) / vb[2]
-    if vb and display_width:
-        scale = min(scale, display_width / vb[2])
+    if vb:
+        scale = min(scale, (display_width or DISPLAY_WIDTH) / vb[2])
 
     texts, segs, colors = [], [], set()
+    arrows, thick, leaders, hatchsegs = [], [], [], []   # 矢印つきの細線，太線，引き出し線，斜線
     ids = {}
     for el in root.iter():
         if el.get("id"):
@@ -346,6 +363,9 @@ def lint(path, display_width=None):
             if v is not None:
                 st[name] = v
         st["fs"] = font_px(prop(el, "font-size"), st["fs"])
+        sw = prop(el, "stroke-width")
+        if sw is not None:
+            st["sw"] = length(sw, 1.0)
         if el.get("data-lint") == "skip" or "hatch" in (el.get("class") or "").split():
             st["skip"] = True
         if prop(el, "display") == "none" or prop(el, "visibility") == "hidden":
@@ -389,13 +409,31 @@ def lint(path, display_width=None):
             content = re.sub(r"\s+", " ", "".join(el.itertext())).strip()
             if content:
                 k = math.sqrt(abs(ctm[0] * ctm[3] - ctm[1] * ctm[2]))
+                sub = [font_px(prop(ch, "font-size"), fs) for ch in el.iter()
+                       if ch is not el and prop(ch, "font-size") and "".join(ch.itertext()).strip()]
                 texts.append(dict(s=content, box=box(corners), inner=box(inner), fs=fs * k,
-                                  skip=st.get("skip", False)))
+                                  fsmin=min([fs] + sub) * k, skip=st.get("skip", False)))
             return
         if polys and (stroked or filled):
+            hatch = "hatch" in (el.get("class") or "").split()
+            role = el.get("data-role") or ""
+            w = st.get("sw", 1.0)
+            ms, me = el.get("marker-start"), el.get("marker-end")
+            dashed = bool(prop(el, "stroke-dasharray"))
             for pts in polys:
                 pts = [mat_apply(ctm, p) for p in pts]
                 segs.extend((a, b, st.get("skip", False), tag) for a, b in zip(pts, pts[1:]))
+                if hatch:
+                    hatchsegs.extend(zip(pts, pts[1:]))
+                if not stroked or st.get("skip") or hatch:
+                    continue
+                if w >= 2.0 and (ms or me):
+                    thick.extend(zip(pts, pts[1:]))
+                if len(pts) == 2 and not dashed and w <= 1.0 and (ms or me):
+                    arrows.append((pts[0], pts[1], bool(ms), bool(me), role))
+                if len(pts) == 2 and not dashed and (role == "leader" or (
+                        not role and not ms and abs(w - 0.7) < 0.01)):
+                    leaders.append((pts[0], pts[1]))
         for ch in el:
             walk(ch, ctm, st)
 
@@ -417,9 +455,65 @@ def lint(path, display_width=None):
         if out:
             p = out[0][0]
             Wn.append(f"線が viewBox の外に出ている（{len(out)} か所。例 ({p[0]:.0f},{p[1]:.0f}) 付近）")
+    vw = vb[2] if vb else 0.0
+    shown = f"表示幅 {vw * scale:.0f}px" + (f"（viewBox の幅 {vw:.0f}px を {scale:.2f} 倍）" if scale < 0.999 else "")
+    body = [t for t in texts if t["fs"] * scale < MIN_BODY_PX - 0.05 and not t["s"].startswith("※")
+            and not t["skip"]]
+    tiny = [t for t in texts if t["fsmin"] * scale < MIN_TEXT_PX - 0.05]
+    if body:
+        Wn.append(f"本文字が小さい: {shown}で {min(t['fs'] for t in body) * scale:.1f}px の文字が {len(body)} 個"
+                  f"（例「{body[0]['s']}」）。{MIN_BODY_PX:.0f}px 以上＝font-size {MIN_BODY_PX / scale:.1f} 以上にする"
+                  "（図の幅を表示幅以下にし，一部の文字だけ小さくしない）")
+    if tiny:
+        Wn.append(f"最小の文字が小さい: {shown}で {min(t['fsmin'] for t in tiny) * scale:.1f}px の文字（添字・指数・注記）が "
+                  f"{len(tiny)} 個（例「{tiny[0]['s']}」）。{MIN_TEXT_PX:.0f}px 以上＝font-size {MIN_TEXT_PX / scale:.1f} 以上にする")
+    # 短い寸法：細い両矢印の線，または向かい合う2つの矢じり（外向きの寸法）の間隔
+    short = []
+    for a, b, ms, me, role in arrows:
+        if ms and me:
+            L = math.hypot(b[0] - a[0], b[1] - a[1]) + 8
+            if L * scale < MIN_DIM_PX - 0.5:
+                short.append((L, a))
+    ends = [(b, (b[0] - a[0], b[1] - a[1]), role) for a, b, ms, me, role in arrows if me and not ms] + \
+           [(a, (a[0] - b[0], a[1] - b[1]), role) for a, b, ms, me, role in arrows if ms and not me]
+    for i, (p, d, r1) in enumerate(ends):
+        for q, e, r2 in ends[i + 1:]:
+            ld, le = math.hypot(*d), math.hypot(*e)
+            if ld < 1 or le < 1 or ld > 20 or le > 20:
+                continue           # 外向きの寸法の矢じりは短い線（約 13px）に付く
+            pq = (q[0] - p[0], q[1] - p[1])
+            gap = math.hypot(*pq)
+            if gap < 1:
+                continue
+            facing = (d[0] * e[0] + d[1] * e[1]) / (ld * le) < -0.98          # 逆向き
+            inline = abs(d[0] * pq[1] - d[1] * pq[0]) / (ld * gap) < 0.05      # 一直線上
+            toward = (d[0] * pq[0] + d[1] * pq[1]) > 0                         # 互いに向かい合う
+            if facing and inline and toward and (gap - 8) * scale < MIN_DIM_PX - 0.5:
+                short.append((max(gap - 8, 0.0), p))
+    for L, a in short:
+        Wn.append(f"寸法の区間が短い: ({a[0]:.0f},{a[1]:.0f}) 付近の寸法が表示で約 {L * scale:.0f}px"
+                  f"（{MIN_DIM_PX:.0f}px 以上にする。縮尺を上げる・誇張して模式図と断る・拡大図を別に描く）")
+    # 引き出し線が他の線・斜線を横切る
+    for p, q in leaders:
+        L = math.hypot(q[0] - p[0], q[1] - p[1])
+        if L < 10:
+            continue
+        u = ((q[0] - p[0]) / L, (q[1] - p[1]) / L)
+        a, b = (p[0] + u[0] * 4, p[1] + u[1] * 4), (q[0] - u[0] * 4, q[1] - u[1] * 4)
+        n = sum(1 for s0, s1, skip, tag in segs if not skip and (s0, s1) != (p, q) and _cross(a, b, s0, s1))
+        h = sum(1 for s0, s1 in hatchsegs if _cross(a, b, s0, s1))
+        if n or h >= 2:
+            what = "，".join(x for x in (f"他の線を {n} か所" if n else "", f"斜線の領域（斜線 {h} 本）" if h >= 2 else "") if x)
+            Wn.append(f"引き出し線 ({p[0]:.0f},{p[1]:.0f})→({q[0]:.0f},{q[1]:.0f}) が{what}横切る"
+                      "（線・領域を横切らない側から引くか，ラベルを対象のそばに置く）")
+    # 太い矢印（力）が文字に接している
     for t in texts:
-        if t["fs"] * scale < 9:
-            Wn.append(f"文字「{t['s']}」が小さい（表示 {t['fs'] * scale:.1f}px。9px＝約 7pt 以上にする）")
+        if t["skip"]:
+            continue
+        b = t["box"]
+        box = (b[0] - 2.5, b[1] - 1, b[2] + 2.5, b[3] + 1)
+        if any(seg_hits_box(p, q, box) for p, q in thick):
+            Wn.append(f"文字「{t['s']}」に太い矢印（力）が重なっている・接している {fmt(t['box'])}")
     for t in texts:
         if "\u02da" in t["s"] or "\u00ba" in t["s"]:
             Wn.append(f"文字「{t['s']}」の度の記号が「˚」「º」になっている（「°」U+00B0 を使う）")

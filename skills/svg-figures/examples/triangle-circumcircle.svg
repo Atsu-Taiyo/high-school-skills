@@ -19,13 +19,13 @@
 <circle cx="177.6" cy="217.2" r="2.6" fill="#000" stroke="none"/>
 <circle cx="177.6" cy="173.2" r="2.6" fill="#000" stroke="none"/>
 </g>
-<g font-family="'Times New Roman', Times, 'Nimbus Roman', 'Liberation Serif', 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif CJK JP', serif" font-size="14" fill="#000" stroke="none" text-anchor="middle">
-<text x="87.12" y="206.31" xml:space="preserve"><tspan font-style="italic">θ</tspan></text>
-<text x="146.8" y="50.42" xml:space="preserve">A</text>
-<text x="57.3" y="228.13" xml:space="preserve">B</text>
-<text x="297.9" y="228.13" xml:space="preserve">C</text>
-<text x="146.8" y="234.82" xml:space="preserve">H</text>
-<text x="177.6" y="234.82" xml:space="preserve">M</text>
-<text x="186.6" y="166.58" xml:space="preserve">O</text>
+<g font-family="'Times New Roman', Times, 'Nimbus Roman', 'Liberation Serif', 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif CJK JP', serif" font-size="16" fill="#000" stroke="none" text-anchor="middle">
+<text x="87.6" y="206.18" xml:space="preserve"><tspan font-style="italic">θ</tspan></text>
+<text x="146.8" y="50.08" xml:space="preserve">A</text>
+<text x="56.62" y="229.37" xml:space="preserve">B</text>
+<text x="298.58" y="229.37" xml:space="preserve">C</text>
+<text x="146.8" y="236.48" xml:space="preserve">H</text>
+<text x="177.6" y="236.48" xml:space="preserve">M</text>
+<text x="187.28" y="166.24" xml:space="preserve">O</text>
 </g>
 </svg>

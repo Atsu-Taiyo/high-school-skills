@@ -23,14 +23,14 @@
 <circle cx="271.92" cy="143.51" r="2.4" fill="#000" stroke="none"/>
 <circle cx="271.92" cy="169.5" r="2.4" fill="#000" stroke="none"/>
 </g>
-<g font-family="'Times New Roman', Times, 'Nimbus Roman', 'Liberation Serif', 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif CJK JP', serif" font-size="14" fill="#000" stroke="none" text-anchor="middle">
-<text x="97.1" y="285.33" xml:space="preserve"><tspan font-style="italic">θ</tspan></text>
-<text x="287.33" y="128.33" xml:space="preserve"><tspan font-style="italic">m</tspan></text>
-<text x="193.32" y="176.88" xml:space="preserve"><tspan font-style="italic">mg</tspan> sin <tspan font-style="italic">θ</tspan></text>
-<text x="351.63" y="234.38" xml:space="preserve"><tspan font-style="italic">mg</tspan> cos <tspan font-style="italic">θ</tspan></text>
-<text x="285.39" y="200.53" xml:space="preserve"><tspan font-style="italic">θ</tspan></text>
-<text x="259.99" y="272.96" xml:space="preserve"><tspan font-style="italic">mg</tspan></text>
-<text x="216.55" y="77.4" xml:space="preserve"><tspan font-style="italic">N</tspan></text>
-<text x="326.28" y="154.1" xml:space="preserve"><tspan font-style="italic">F</tspan></text>
+<g font-family="'Times New Roman', Times, 'Nimbus Roman', 'Liberation Serif', 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif CJK JP', serif" font-size="16" fill="#000" stroke="none" text-anchor="middle">
+<text x="97.58" y="285.6" xml:space="preserve"><tspan font-style="italic">θ</tspan></text>
+<text x="287.33" y="128.99" xml:space="preserve"><tspan font-style="italic">m</tspan></text>
+<text x="189.92" y="177.54" xml:space="preserve"><tspan font-style="italic">mg</tspan> sin <tspan font-style="italic">θ</tspan></text>
+<text x="355.19" y="235.04" xml:space="preserve"><tspan font-style="italic">mg</tspan> cos <tspan font-style="italic">θ</tspan></text>
+<text x="285.57" y="202.19" xml:space="preserve"><tspan font-style="italic">θ</tspan></text>
+<text x="258.69" y="274.62" xml:space="preserve"><tspan font-style="italic">mg</tspan></text>
+<text x="216.04" y="77.06" xml:space="preserve"><tspan font-style="italic">N</tspan></text>
+<text x="326.79" y="155.76" xml:space="preserve"><tspan font-style="italic">F</tspan></text>
 </g>
 </svg>

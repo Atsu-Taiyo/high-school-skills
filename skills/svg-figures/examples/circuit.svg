@@ -28,10 +28,10 @@
 <circle cx="318.4" cy="58.8" r="2.2" fill="#000" stroke="none"/>
 <circle cx="318.4" cy="190.8" r="2.2" fill="#000" stroke="none"/>
 </g>
-<g font-family="'Times New Roman', Times, 'Nimbus Roman', 'Liberation Serif', 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif CJK JP', serif" font-size="14" fill="#000" stroke="none" text-anchor="middle">
-<text x="33.64" y="129.42" xml:space="preserve"><tspan font-style="italic">E</tspan></text>
-<text x="111.6" y="43.42" xml:space="preserve">S</text>
-<text x="243.6" y="47.42" xml:space="preserve"><tspan font-style="italic">R</tspan></text>
+<g font-family="'Times New Roman', Times, 'Nimbus Roman', 'Liberation Serif', 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif CJK JP', serif" font-size="16" fill="#000" stroke="none" text-anchor="middle">
+<text x="32.96" y="130.08" xml:space="preserve"><tspan font-style="italic">E</tspan></text>
+<text x="111.6" y="43.08" xml:space="preserve">S</text>
+<text x="243.6" y="47.08" xml:space="preserve"><tspan font-style="italic">R</tspan></text>
 <rect x="179.4" y="183.3" width="14" height="15" fill="#fff" stroke="none"/><text x="186.48" y="194.76" data-lint="skip" font-size="12" xml:space="preserve">A</text>
 <rect x="381.8" y="117.3" width="14" height="15" fill="#fff" stroke="none"/><text x="388.88" y="128.76" data-lint="skip" font-size="12" xml:space="preserve">V</text>
 </g>

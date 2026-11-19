@@ -72,10 +72,10 @@
 <path d="M279.82,61.32 L286.19,67.68 M279.82,67.68 L286.19,61.32" stroke-width="1"/>
 <path d="M73,193.5 L73,208.5" stroke-width="0.6"/>
 <path d="M183,193.5 L183,208.5" stroke-width="0.6"/>
-<path d="M77,204.5 L179,204.5" stroke-width="0.8" marker-end="url(#faf5b63-dim-e)" marker-start="url(#faf5b63-dim-s)"/>
+<path d="M77,204.5 L179,204.5" stroke-width="0.8" marker-end="url(#faf5b63-dim-e)" marker-start="url(#faf5b63-dim-s)" data-role="dim"/>
 </g>
-<g font-family="'Times New Roman', Times, 'Nimbus Roman', 'Liberation Serif', 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif CJK JP', serif" font-size="14" fill="#000" stroke="none" text-anchor="middle">
-<text x="61.76" y="125.12" xml:space="preserve"><tspan font-style="italic">I</tspan></text>
-<rect x="122.76" y="196" width="10.48" height="17" fill="#fff" stroke="none"/><text x="128" y="209.12" data-lint="skip" xml:space="preserve"><tspan font-style="italic">r</tspan></text>
+<g font-family="'Times New Roman', Times, 'Nimbus Roman', 'Liberation Serif', 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif CJK JP', serif" font-size="16" fill="#000" stroke="none" text-anchor="middle">
+<text x="61.44" y="125.78" xml:space="preserve"><tspan font-style="italic">I</tspan></text>
+<rect x="122.44" y="195" width="11.12" height="19" fill="#fff" stroke="none"/><text x="128" y="209.78" data-lint="skip" xml:space="preserve"><tspan font-style="italic">r</tspan></text>
 </g>
 </svg>

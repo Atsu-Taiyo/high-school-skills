@@ -28,7 +28,7 @@ def parabola_area():
     fig.plot(f, -2.6, 3.4)
     fig.line_through((x1, g(x1)), (x2, g(x2)))
     for x in (x1, x2):
-        fig.segment((x, 0), (x, f(x)), style="dash")
+        fig.segment((x, 0), (x, f(x)), style="guide")
         fig.dot((x, f(x)))
     fig.label("$y=x^2$", (-2.3, f(-2.3)), dir="E", dist=8)
     fig.label("$y=x+2$", (2.6, g(2.6)), dir="SE", dist=3)
@@ -126,15 +126,15 @@ def convex_lens():
     fig.ray(tip, img)                        # レンズの中心を直進
     fig.ray(tip, (0, m * h), img, at=0.3)            # 前方の焦点を通る → 光軸に平行
     fig.point((-f, 0), "F", dir="S")
-    fig.point((f, 0), "F′", dir="S")
+    fig.point((f, 0), "F′", dir="NE")
     fig.label("O", (0, 0), dir="SW", dist=12)
-    fig.label("物体", (-a, h), dir="N", size=12)
-    fig.label("実像", img, dir="S", size=12)
+    fig.label("物体", (-a, h), dir="N")
+    fig.label("実像", img, dir="S")
     fig.save(out("convex-lens.svg"))
 
 
 def lens_dimensions():
-    """凸レンズと凹レンズの組み合わせ。寸法線を段に分け，短い区間と引き出し線を使う。
+    """凸レンズと凹レンズの組み合わせ。寸法線を段に分け，短い区間は矢じりを外向きにする。
 
     右から来た光軸に平行な光線が凸レンズ L1（焦点距離 8d）で点 P1 に向かい，途中の
     凹レンズ L2（焦点距離 12d）で曲げられてスクリーン S 上の点 P2 に集まる。
@@ -145,7 +145,7 @@ def lens_dimensions():
     h2 = w * (x2 - xP1) / f1                  # L2 を通る高さ（相似）
     b, _ = hs.lens_image(-(x2 - xP1), -12.0)  # L2：P1 を虚光源として像の位置を確かめる
     assert abs(b - (x2 - xS)) < 1e-9
-    fig = Figure(-0.9, 10.6, -4.2, 3.0, unit=26, display_width=360,
+    fig = Figure(-0.9, 10.6, -4.2, 3.0, unit=29,
                  title="凸レンズと凹レンズの組み合わせ",
                  desc="光軸に平行な光線が凸レンズ L1 と凹レンズ L2 を通ってスクリーン S 上の点 P2 に集まる図。"
                       "レンズとスクリーンの間隔を段に分けた寸法線で示す")
@@ -156,12 +156,12 @@ def lens_dimensions():
     fig.ray((10.6, w), (x1, w), (x2, h2), (xS, 0))
     fig.segment((x2, h2), (xP1, 0), style="dash")          # L2 が無いときの進路
     fig.dot((x2, h2))
-    fig.point((xP1, 0), "P$_1$", dir="SE", dist=3)
+    fig.dot((xP1, 0))
+    fig.leader("P$_1$", (xP1, 0), (xP1 + 0.9, -0.95), dot=True)   # 混み合う所の名前は引き出し線
     fig.point((xS, 0), "P$_2$", dir="SW")
     fig.label("S", (xS, 2.0), dir="N")
     fig.label("L$_2$", (x2, 1.1), dir="N")
     fig.label("L$_1$", (x1, 2.2), dir="N")
-    fig.leader("$\\frac{3}{8}w$", (x2, h2), (x2 - 1.6, 2.0))   # 光線が L2 を通る高さ
     fig.dimension((10.0, 0), (10.0, w), "$w$", side=-1, offset=10, ext=False)
     # 寸法線は図形の下にまとめる。1段目は区間ごと，2段目は全体。
     # 補助線は S・L2・L1 の下端と軸上の P1 から下ろす。区間 d は短いので矢じりが外に出る。
@@ -199,8 +199,8 @@ def cycle_direction():
     fig.yaxis("$p$", ticks=[(p1, "$p_1$"), (p2, "$p_2$")])
     fig.label("O", (0, 0), dir="SW", dist=4)
     for P in (A, B, C):
-        fig.segment((P[0], 0), P, style="dash")
-        fig.segment((0, P[1]), P, style="dash")
+        fig.segment((P[0], 0), P, style="guide")
+        fig.segment((0, P[1]), P, style="guide")
     fig.segment(A, B, arrow="mid")                   # 定積
     fig.plot(iso, V1, V3)                            # 等温（曲線）
     Vm = (V1 + V3) / 2
@@ -224,6 +224,36 @@ def field_density():
     fig.save(out("field-density.svg"))
 
 
+def region_boundary():
+    """不等式の表す領域。含まない境界線（bound）と座標を読む補助線（guide）を描き分ける。"""
+    f = lambda x: x * x
+    g = lambda x: x + 2
+    x1 = hs.solve(lambda x: f(x) - g(x), -2, 0)   # -1
+    x2 = hs.solve(lambda x: f(x) - g(x), 0, 3)    # 2
+    fig = Figure(-2.4, 3.6, -0.9, 5.6, unit=50, title="不等式の表す領域",
+                 desc="連立不等式 y>x^2，y<x+2 の表す領域を斜線で示した図。境界線は含まないので破線で，"
+                      "交点 (-1, 1)，(2, 4) は白丸で示す")
+    fig.hatch(hs.region_between(g, f, x1, x2))
+    fig.axes()
+    # 境界である区間は bound（太い破線），その外は細い実線で形だけ示す
+    fig.plot(f, x1, x2, style="bound")
+    fig.segment((x1, g(x1)), (x2, g(x2)), style="bound")
+    for a, b in ((-2.2, x1), (x2, 2.3)):
+        fig.plot(f, a, b, style="aux")
+    fig.segment((-2.4, g(-2.4)), (x1, g(x1)), style="aux")
+    fig.segment((x2, g(x2)), (3.3, g(3.3)), style="aux")
+    # 座標を読む補助線は guide（細い点線）
+    for x in (x1, x2):
+        fig.segment((x, 0), (x, f(x)), style="guide")
+        fig.dot((x, f(x)), open=True)
+    fig.label("$-1$", (x1, 0), dir="S", dist=5)
+    fig.label("$2$", (x2, 0), dir="S", dist=5)
+    # 曲線の名前は領域の外側へ引き出す（斜線・補助線を横切らない）
+    fig.leader("$y=x^2$", (0.95, f(0.95)), (1.3, 0.5), dir="S")
+    fig.leader("$y=x+2$", (1.2, g(1.2)), (0.95, 4.45), dir="N")
+    fig.save(out("region-boundary.svg"))
+
+
 if __name__ == "__main__":
     parabola_area()
     triangle_circumcircle()
@@ -234,3 +264,4 @@ if __name__ == "__main__":
     circuit_polarity()
     cycle_direction()
     field_density()
+    region_boundary()

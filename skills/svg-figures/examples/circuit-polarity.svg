@@ -23,15 +23,15 @@
 <path d="M340.4,195.2 L76.4,195.2" stroke-width="1.2"/>
 <path d="M221.6,87.4 L295.8,87.4" stroke-width="1" marker-end="url(#f93c591-arr-e)"/>
 </g>
-<g font-family="'Times New Roman', Times, 'Nimbus Roman', 'Liberation Serif', 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif CJK JP', serif" font-size="14" fill="#000" stroke="none" text-anchor="middle">
-<text x="55.64" y="133.82" xml:space="preserve"><tspan font-style="italic">E</tspan></text>
-<text x="84.3" y="118.99" font-size="13" xml:space="preserve">+</text>
-<text x="84.3" y="147.99" font-size="13" xml:space="preserve">−</text>
-<text x="129.2" y="47.82" xml:space="preserve">S</text>
-<text x="261.2" y="51.82" xml:space="preserve"><tspan font-style="italic">R</tspan></text>
-<text x="360.16" y="133.82" xml:space="preserve"><tspan font-style="italic">C</tspan></text>
-<text x="326.44" y="118.82" xml:space="preserve">+<tspan font-style="italic">Q</tspan></text>
-<text x="326.44" y="148.82" xml:space="preserve">−<tspan font-style="italic">Q</tspan></text>
-<text x="261.2" y="103.02" xml:space="preserve"><tspan font-style="italic">I</tspan></text>
+<g font-family="'Times New Roman', Times, 'Nimbus Roman', 'Liberation Serif', 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif CJK JP', serif" font-size="16" fill="#000" stroke="none" text-anchor="middle">
+<text x="54.96" y="134.48" xml:space="preserve"><tspan font-style="italic">E</tspan></text>
+<text x="85.2" y="118.48" xml:space="preserve">+</text>
+<text x="85.2" y="150.48" xml:space="preserve">−</text>
+<text x="129.2" y="47.48" xml:space="preserve">S</text>
+<text x="261.2" y="51.48" xml:space="preserve"><tspan font-style="italic">R</tspan></text>
+<text x="360.84" y="134.48" xml:space="preserve"><tspan font-style="italic">C</tspan></text>
+<text x="325.16" y="118.48" xml:space="preserve">+<tspan font-style="italic">Q</tspan></text>
+<text x="325.16" y="150.48" xml:space="preserve">−<tspan font-style="italic">Q</tspan></text>
+<text x="261.2" y="104.68" xml:space="preserve"><tspan font-style="italic">I</tspan></text>
 </g>
 </svg>

@@ -21,11 +21,11 @@
 <circle cx="212.8" cy="116" r="2.6" fill="#000" stroke="none"/>
 <circle cx="388.8" cy="116" r="2.6" fill="#000" stroke="none"/>
 </g>
-<g font-family="'Times New Roman', Times, 'Nimbus Roman', 'Liberation Serif', 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif CJK JP', serif" font-size="14" fill="#000" stroke="none" text-anchor="middle">
-<text x="212.8" y="133.62" xml:space="preserve">F</text>
-<text x="388.8" y="133.62" xml:space="preserve">F′</text>
-<text x="287.55" y="136.11" xml:space="preserve">O</text>
-<text x="80.8" y="55.16" font-size="12" xml:space="preserve">物体</text>
-<text x="447.47" y="167.16" font-size="12" xml:space="preserve">実像</text>
+<g font-family="'Times New Roman', Times, 'Nimbus Roman', 'Liberation Serif', 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif CJK JP', serif" font-size="16" fill="#000" stroke="none" text-anchor="middle">
+<text x="212.8" y="135.28" xml:space="preserve">F</text>
+<text x="401.12" y="109.04" xml:space="preserve">F′</text>
+<text x="286.87" y="137.77" xml:space="preserve">O</text>
+<text x="80.8" y="54.48" xml:space="preserve">物体</text>
+<text x="447.47" y="170.48" xml:space="preserve">実像</text>
 </g>
 </svg>

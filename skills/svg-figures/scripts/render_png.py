@@ -22,6 +22,7 @@ import pathlib
 import re
 import shutil
 import subprocess
+import time
 import sys
 import tempfile
 import xml.etree.ElementTree as ET
@@ -99,9 +100,31 @@ def by_chrome(chrome, src, dst, scale):
                f"--user-data-dir={os.path.join(tmp, 'profile')}", pathlib.Path(html).as_uri()]
         if hasattr(os, "geteuid") and os.geteuid() == 0:
             cmd.insert(1, "--no-sandbox")
-        r = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120)
-        if r.returncode != 0 or not os.path.exists(out):
-            raise RuntimeError("Chrome のヘッドレス撮影に失敗: " + r.stderr.decode(errors="replace")[-400:])
+        # Chrome は撮影後の終了処理で固まることがある。PNG が書き出されて大きさが落ち着いたら，
+        # 終了を待たずに止める（撮影そのものは数秒で終わる）。
+        if os.path.exists(out):
+            os.remove(out)
+        log = open(os.path.join(tmp, "chrome.log"), "wb")
+        proc = subprocess.Popen(cmd, stdout=log, stderr=log)
+        t0, last, stable = time.time(), -1, 0
+        while proc.poll() is None and time.time() - t0 < 120:
+            time.sleep(0.5)
+            size = os.path.getsize(out) if os.path.exists(out) else -1
+            stable = stable + 1 if size > 0 and size == last else 0
+            last = size
+            if stable >= 4:
+                break
+        if proc.poll() is None:
+            proc.terminate()
+            try:
+                proc.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+                proc.wait()
+        log.close()
+        if not os.path.exists(out) or os.path.getsize(out) == 0:
+            with open(os.path.join(tmp, "chrome.log"), "rb") as fh:
+                raise RuntimeError("Chrome のヘッドレス撮影に失敗: " + fh.read().decode(errors="replace")[-400:])
 
 
 def load_cairosvg():
