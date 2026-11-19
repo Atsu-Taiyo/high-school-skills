@@ -1095,7 +1095,7 @@ class Figure:
         fs, (cx, cy) = L["fs"], L["c"]
         base = cy + 0.33 * fs
         out = []
-        if L["bg"]:
+        if L["bg"] and not L.get("plain"):   # 計器の文字は白く塗った円の中なので下地は要らない
             b = self._box(L, L["c"], 1.5)
             b = (b[0] - 1.5, b[1], b[2] + 1.5, b[3])     # 斜体の張り出しの分だけ左右を広く
             out.append(f'<rect x="{_f(b[0])}" y="{_f(b[1])}" width="{_f(b[2] - b[0])}" '
