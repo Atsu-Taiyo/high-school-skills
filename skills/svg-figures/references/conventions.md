@@ -91,11 +91,21 @@ Y = 上余白 + (ymax − y) × unit      ← y の反転はここだけ
 
 ## 文字
 
-```svg
-<text x="62.4" y="92.6"><tspan font-style="italic">y</tspan> = <tspan font-style="italic">x</tspan><tspan font-size="12" dy="-6.4">2</tspan></text>
-<text x="246" y="290">A</text>
-<text x="80" y="60"><tspan font-style="italic">a</tspan><tspan font-size="12" dy="3.84"><tspan font-style="italic">n</tspan>+1</tspan></text>
+### 数式・和文を組む
+
+手書きの tspan が混じると、和文まで斜体になったり、添字から基線が戻らなかったりする。新しい図は `fig.label(...)`、基線の決まった SVG は `label_svg` または CLI スクリプト `math_label.py` を使う。MathJax・KaTeX は不要。本文でも通る TeX の部分集合を text・tspan・path に展開する。
+
+```python
+from math_label import label_svg  # scripts ディレクトリを import パスに置く
+
+label_svg(r"$\frac{1}{2}mv^2$", 40, 60, 16)
+label_svg(r"$\mathrm{P}_{2N-1}$", 90, 60, 16)  # P は点名、N は変数
+label_svg("(張力 $T$)", 150, 60, 16, anchor="middle")
+label_svg(r"$\omega_0$", 200, 60, 16)
+label_svg(r"$\sin\theta=10^{-3}$", 250, 60, 16)
 ```
+
+`P$_{2N-1}$` も P を立体に保つ。TeX の引数をまとめる `{...}` は表示されない。原図に波括弧が印刷されているときは `\{`・`\}` を使う。分数の入れ子と添字内の縦分数は CLI の対象外。基線の y は下向きが正。CLI の座標と文字サイズは SVG のユーザー単位で指定する。
 
 | 立体（upright） | イタリック |
 |---|---|
@@ -113,14 +123,7 @@ Y = 上余白 + (ymax − y) × unit      ← y の反転はここだけ
 - 添字・指数は `<tspan dy="…" font-size="12">`（本文字の 0.75 倍。12px を下回らない）。`baseline-shift` はレンダラーによって効かないので使わない。添字の後に通常の文字が続くときは，`dy` を逆向きに入れて基線を戻す。
 - `text-anchor="middle"` で中心を決めて置く。文字幅はフォントで変わるので，左端揃えで細かく詰める組み方はしない。
 - ベクトルの矢印は，文字の上に細い線（0.7）と小さな矢じりを別の `<path>` で描く。結合文字（U+20D7）はフォントによって位置がずれる。
-- **分数は縦組み**にする（分子・括線・分母）。`5/6`，`π/2` のような斜線の分数は使わない。`hsfig` では `"$\\frac{5}{6}$"`。手で書くときは，分子と分母を別の `<text>`（どちらも括線の中央に `text-anchor="middle"`）にし，括線を細い線（0.8）で引く。括線は式の中心の高さ（基線の 0.3em 上）。分数の前後の文字は，分数の側に寄せて固定する（前は `text-anchor="end"`，後ろは `"start"`）。
-
-  ```svg
-  <text x="150" y="100" text-anchor="end"><tspan font-style="italic">M</tspan> = sin 1 − </text>
-  <text x="158" y="92.2">5</text>
-  <text x="158" y="108.7">6</text>
-  <path d="M151.5,95.8 L164.5,95.8" stroke="#000" stroke-width="0.8"/>
-  ```
+- **分数は縦組み**にする（分子・括線・分母）。`5/6`，`π/2` のような斜線の分数は使わない。`hsfig` では `"$\\frac{5}{6}$"`。ヘルパーが分子と分母を中央揃えにし，間に括線を描く。
 - **座標はカンマの後に空白**を入れる：C(0, 0, 2)，P$(a, b)$。`C(0,0,2)` と詰めない。点の名前は立体，中の文字式はイタリック。
 - 根号の中の長い式・積分記号・Σ など，上の記法で書けない式は図に入れない。記号（$S$，$l$ など）を図に置き，式は本文に書く。
 

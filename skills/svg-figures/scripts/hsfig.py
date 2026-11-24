@@ -278,6 +278,7 @@ _SYMBOL = {
     "parallel": "∥", "cap": "∩", "cup": "∪", "to": "→", "quad": "\u2003", ",": "\u2009",
 }
 _FUNCS = {"sin", "cos", "tan", "log", "lim", "max", "min"}
+_BARE_FUNC = re.compile(r"(?<![A-Za-z])(?:" + "|".join(sorted(_FUNCS)) + r")(?![A-Za-z])")
 _REL = "=<>≦≧≠≒≪≫"
 
 
@@ -296,25 +297,34 @@ class _Frac:
         self.num, self.den = num, den
 
 
-def _group(s, i):
+def _group(s, i, strict=False):
     """s[i] から1トークン（{...} か \\name か1文字）を取り，(中身, 次の位置) を返す。"""
     if i >= len(s):
+        if strict:
+            raise ValueError("missing math argument")
         return "", i
     if s[i] == "{":
         depth, j = 1, i + 1
         while j < len(s) and depth:
+            if s[j] == "\\":
+                j += 2
+                continue
             depth += {"{": 1, "}": -1}.get(s[j], 0)
             j += 1
+        if strict and (depth or j == i + 2):
+            raise ValueError("unclosed or empty math group")
         return s[i + 1:j - 1], j
     if s[i] == "\\":
         j = i + 1
         while j < len(s) and s[j].isalpha():
             j += 1
+        if j == i + 1 and j < len(s):
+            j += 1
         return s[i:j], j
     return s[i], i + 1
 
 
-def _math_runs(s, script=0, over=None):
+def _math_runs(s, script=0, over=None, strict=False):
     runs, i = [], 0
 
     def put(text, italic=False):
@@ -322,24 +332,33 @@ def _math_runs(s, script=0, over=None):
 
     while i < len(s):
         c = s[i]
-        if c == "\\":
-            j = i + 1
-            while j < len(s) and s[j].isalpha():
-                j += 1
-            name = s[i + 1:j] or s[j:j + 1]
-            i = j if j > i + 1 else j + 1
-            if name in ("vec", "sqrt", "overline"):
-                body, i = _group(s, i)
+        function = _BARE_FUNC.match(s, i)
+        if c == "\\" or function:
+            if function:
+                name, i = function.group(), function.end()
+            else:
+                j = i + 1
+                while j < len(s) and s[j].isalpha():
+                    j += 1
+                name = s[i + 1:j] or s[j:j + 1]
+                i = j if j > i + 1 else j + 1
+            if name in ("vec", "sqrt", "overline", "hat"):
+                body, i = _group(s, i, strict)
                 if name == "sqrt":
                     put("√")
-                runs.extend(_math_runs(body, script, "vec" if name == "vec" else "bar"))
+                runs.extend(_math_runs(body, script, name if name in ("vec", "hat") else "bar", strict))
             elif name in ("frac", "dfrac", "tfrac"):
-                num, i = _group(s, i)
-                den, i = _group(s, i)
+                num, i = _group(s, i, strict)
+                den, i = _group(s, i, strict)
+                if script and strict:
+                    raise ValueError("stacked fractions in scripts are outside the label subset")
                 if script:   # 添字・指数の中では縦に組めないので a/b にする
-                    runs.extend(_math_runs(num + "/" + den, script, over))
+                    runs.extend(_math_runs(num + "/" + den, script, over, strict))
                 else:
-                    runs.append(_Frac(_merge(_math_runs(num)), _merge(_math_runs(den))))
+                    parts = [_merge(_math_runs(arg, strict=strict)) for arg in (num, den)]
+                    if any(isinstance(r, _Frac) for part in parts for r in part):
+                        raise ValueError("nested fractions are outside the label subset")
+                    runs.append(_Frac(*parts))
             elif name in _GREEK:
                 put(_GREEK[name], True)
             elif name in _SYMBOL:
@@ -351,16 +370,33 @@ def _math_runs(s, script=0, over=None):
                 while i < len(s) and s[i] == " ":
                     i += 1
             elif name == "mathrm" or name == "text":
-                body, i = _group(s, i)
-                put(body)
+                body, i = _group(s, i, strict)
+                if name == "text":
+                    put(body)
+                else:
+                    upright = _math_runs(body, script, over, strict)
+                    for run in upright:
+                        if isinstance(run, _Frac):
+                            raise ValueError("use mathrm inside the fraction arguments")
+                        run.italic = False
+                    runs.extend(upright)
+            elif name in ("{", "}", " "):
+                put(name)
+            elif strict:
+                raise ValueError(f"unknown math command: \\{name}")
             else:
                 put(name)
         elif c in "_^":
-            body, i = _group(s, i + 1)
+            body, i = _group(s, i + 1, strict)
             if c == "^" and body.strip() in ("\\circ", "°", "∘"):
                 put("°")    # 角度の ° は指数にしない（小さく浮いて「˚」に見える）
             else:
-                runs.extend(_math_runs(body, -1 if c == "_" else 1, over))
+                runs.extend(_math_runs(body, -1 if c == "_" else 1, over, strict))
+        elif c == "{":
+            body, i = _group(s, i, strict)
+            runs.extend(_math_runs(body, script, over, strict))
+        elif c == "}" and strict:
+            raise ValueError("unexpected closing brace")
         elif c == " ":
             i += 1
         elif c == "~":
@@ -383,7 +419,7 @@ def _math_runs(s, script=0, over=None):
         elif c in _REL:
             put("\u2009" + c + "\u2009" if script == 0 else c)
             i += 1
-        elif c.isalpha() and ord(c) < 0x250:
+        elif c.isalpha() and (ord(c) < 0x250 or c in _GREEK.values()):
             put(c, True)
             i += 1
         else:
@@ -409,15 +445,17 @@ def _coord_commas(text):
     return re.sub(r"\([^()]*\)", lambda m: re.sub(r",(?=\S)", ", ", m.group(0)), text)
 
 
-def parse_label(s):
+def parse_label(s, *, strict=False):
     """ラベル文字列を _Run と _Frac の列にする。"""
     runs = []
     s = str(s).replace("\u02da", "°").replace("\u00ba", "°")   # ˚ º を度の記号 ° に直す
+    if strict and s.count("$") % 2:
+        raise ValueError("unclosed math delimiter $")
     for k, part in enumerate(s.split("$")):
         if not part:
             continue
         if k % 2:
-            runs.extend(_math_runs(part))
+            runs.extend(_math_runs(part, strict=strict))
         else:
             runs.append(_Run(_coord_commas(part)))
     return _merge(runs)
@@ -455,11 +493,13 @@ def _char_em(c):
     return 0.48
 
 
-def _run_width(run, fs):
+def _run_width(run, fs, sub_size=None):
     if isinstance(run, _Frac):
-        return max(sum(_run_width(r, fs) for r in run.num),
-                   sum(_run_width(r, fs) for r in run.den)) + 7
+        return max(sum(_run_width(r, fs, sub_size) for r in run.num),
+                   sum(_run_width(r, fs, sub_size) for r in run.den)) + 7
     k = SCRIPT if run.script else 1.0
+    if run.script < 0 and sub_size is not None:
+        k = sub_size
     return sum(_char_em(c) for c in run.text) * fs * k
 
 
@@ -527,6 +567,97 @@ def _seg_hits_box(p, q, box):
                     return False
                 t1 = min(t1, t)
     return t0 <= t1
+
+
+def _runs_svg(runs, ax, x, base, fs, anchor, attrs="", default_fs=None, sub_size=SCRIPT, sub_drop=.24,
+              width_scale=1.0, color="#000"):
+    """_Run の列を1つの <text> にする。ax は基準の x，x は左端（上付きの線の位置用）。"""
+    spans, extra, cur = [], [], 0.0
+    for r in runs:
+        target = {0: 0.0, -1: sub_drop * fs, 1: -0.40 * fs}[r.script]
+        a = ""
+        if r.italic:
+            a += ' font-style="italic"'
+        if r.script:
+            a += f' font-size="{_f(fs * (sub_size if r.script < 0 else SCRIPT))}"'
+        if abs(target - cur) > 1e-9:
+            a += f' dy="{_f(target - cur)}"'
+            cur = target
+        rw = _run_width(r, fs, sub_size) * width_scale
+        if r.over:
+            tall = any(c.isupper() or c.isdigit() or c in "bdfhklt" for c in r.text)
+            yy = base + target - (0.80 if tall else 0.58) * fs * (sub_size if r.script < 0 else SCRIPT if r.script else 1)
+            line = f'fill="none" stroke="{escape(color)}" stroke-width="0.7" data-lint="skip"/>'
+            if r.over == "vec":
+                x1, x2 = x + 0.5, x + max(rw, 6) + 1.5
+                extra.append(f'<path d="M{_f(x1)},{_f(yy)} L{_f(x2)},{_f(yy)} '
+                             f'M{_f(x2 - 3)},{_f(yy - 1.8)} L{_f(x2)},{_f(yy)} L{_f(x2 - 3)},{_f(yy + 1.8)}" '
+                             + line)
+            elif r.over == "hat":
+                extra.append(f'<path d="M{_f(x)},{_f(yy)} l{_f(rw/2)},-3 l{_f(rw/2)},3" ' + line)
+            else:
+                extra.append(f'<path d="M{_f(x - 0.5)},{_f(yy)} L{_f(x + rw + 0.5)},{_f(yy)}" ' + line)
+        x += rw
+        spans.append(f"<tspan{a}>{escape(r.text)}</tspan>" if a else escape(r.text))
+    if fs != default_fs:
+        attrs += f' font-size="{_f(fs)}"'
+    attrs += f' text-anchor="{anchor}"'
+    return [f'<text x="{_f(ax)}" y="{_f(base)}"{attrs} xml:space="preserve">{"".join(spans)}</text>'] + extra
+
+
+def _label_markup(runs, x, base, size, anchor, width=None, *, attrs="", default_fs=None,
+                  sub_size=SCRIPT, sub_drop=.24, color="#000"):
+    """Position contiguous text runs and stacked fractions on one baseline."""
+    def advance(items):
+        return sum(_run_width(r, size, sub_size) for r in items)
+
+    natural = advance(runs)
+    total = natural if width is None else width
+    scale = total / natural if natural else 1
+    align = {"start": 0, "middle": .5, "end": 1}
+    left = x - align[anchor] * total
+    out = []
+
+    def emit(items, left_edge, baseline, alignment):
+        span = advance(items) * scale
+        props = attrs
+        if width is not None:
+            props += f' textLength="{_f(span)}" lengthAdjust="spacingAndGlyphs"'
+        out.extend(_runs_svg(items, left_edge + align[alignment] * span, left_edge, baseline,
+                             size, alignment, props, default_fs, sub_size, sub_drop, scale, color))
+
+    groups = []
+    for item in runs:
+        if isinstance(item, _Frac):
+            groups.append(item)
+        elif groups and isinstance(groups[-1], list):
+            groups[-1].append(item)
+        else:
+            groups.append([item])
+    for i, group in enumerate(groups):
+        if isinstance(group, list):
+            span = advance(group) * scale
+            alignment = anchor if len(groups) == 1 else (
+                "end" if i == 0 else "start" if i == len(groups) - 1 else "middle")
+            emit(group, left, base, alignment)
+        else:
+            span = _run_width(group, size, sub_size) * scale
+            mid, bar = left + span / 2, base - .30 * size
+            for items, y in ((group.num, bar - .26 * size), (group.den, bar + .92 * size)):
+                emit(items, mid - advance(items) * scale / 2, y, "middle")
+            pad = 1.5 * scale
+            out.append(f'<path d="M{_f(left + pad)},{_f(bar)} L{_f(left + span - pad)},{_f(bar)}" '
+                       f'fill="none" stroke="{escape(color)}" stroke-width="0.8" '
+                       'stroke-linecap="butt" data-lint="skip"/>')
+        left += span
+    return "".join(out)
+
+
+def baseline_label(text, x, baseline, size, anchor="start", width=None, *,
+                   sub_size=SCRIPT, sub_drop=.24, color="#000", strict=False):
+    """SVG座標で基線を固定した混植ラベル。width は実測した字幅（px）。"""
+    return _label_markup(parse_label(text, strict=strict), x, baseline, size, anchor, width,
+                         sub_size=sub_size, sub_drop=sub_drop, color=color)
 
 
 class Figure:
@@ -598,6 +729,11 @@ class Figure:
     # ---- 低水準 ----
     def _put(self, svg, layer=1):
         self._items.append((layer, len(self._items), svg))
+
+    def add_svg(self, *fragments, layer=1):
+        """Add trusted SVG fragments in screen px. Place their labels explicitly."""
+        for fragment in fragments:
+            self._put(fragment, layer=layer)
 
     def _stroke(self, style="main", dash=None, width=None):
         w = width if width is not None else WIDTH[style]
@@ -859,6 +995,13 @@ class Figure:
             text = f"${int(v) if float(v).is_integer() else v}$"
         return v, text, d
 
+    def _axis_tick(self, p, vertical):
+        """目盛りの全長を基準文字の 3/8 にそろえる。"""
+        x, y = self.px(p)
+        half = self.fs * 3 / 16
+        dx, dy = (0, half) if vertical else (half, 0)
+        self._path([(x - dx, y - dy), (x + dx, y + dy)], style="axis", register=False)
+
     def xaxis(self, label="$x$", ticks=(), y=0.0, x0=None, x1=None, tick_marks=True,
               label_dir="S"):
         """x 軸（右端に矢じり）。ticks は値，または (値, ラベル[, 向き]) の列。
@@ -873,8 +1016,7 @@ class Figure:
         for spec in ticks:
             v, text, d = self._tick(spec)
             if tick_marks:
-                p = self.px((v, y))
-                self._path([(p[0], p[1] - 3), (p[0], p[1] + 3)], style="axis", register=False)
+                self._axis_tick((v, y), vertical=True)
             if text:
                 self.label(text, (v, y), dir=d or "S", dist=5)
 
@@ -891,8 +1033,7 @@ class Figure:
             if text and re.fullmatch(r"[-−]?\d+(\.\d+)?", text.replace("$", "").strip()):
                 self._numeric_ytick = True
             if tick_marks:
-                p = self.px((x, v))
-                self._path([(p[0] - 3, p[1]), (p[0] + 3, p[1])], style="axis", register=False)
+                self._axis_tick((x, v), vertical=False)
             if text:
                 self.label(text, (x, v), dir=d or "W", dist=5)
 
@@ -902,6 +1043,22 @@ class Figure:
         self.yaxis(ylabel, yticks, tick_marks=tick_marks)
         if origin:
             self.label(origin, (0, 0), dir="SW", dist=4)
+
+    def coordinate_guides(self, p, axes="xy", origin=(0, 0)):
+        """点から必要な座標軸へ読取り線を引く。axes="x" は横軸への投影。
+
+        origin は両軸の交点。軸上の点には投影線を重ねない。
+        """
+        if axes not in ("x", "y", "xy"):
+            raise ValueError('axes は "x", "y", "xy" のいずれか')
+        x, y = p
+        ox, oy = origin
+        if x == ox or y == oy:
+            return
+        for axis in axes:
+            foot = (x, oy) if axis == "x" else (ox, y)
+            self._path([self.px(p), self.px(foot)], style="guide",
+                       layer=0.5, role="coordinate-guide")
 
     def interval(self, a, b, closed_a=True, closed_b=True, y=0.0, h=14):
         """数直線上の区間の図示。a, b に None を渡すとその側は窓の端まで伸ばす。
@@ -1058,39 +1215,6 @@ class Figure:
                     self.warnings.append(f"ラベル「{A['text']}」と「{B['text']}」が接している・重なっている。"
                                          "離すか，leader() で引き出し線を付ける")
 
-    def _runs_svg(self, runs, ax, x, base, fs, anchor, attrs=""):
-        """_Run の列を1つの <text> にする。ax は基準の x，x は左端（上付きの線の位置用）。"""
-        spans, extra, cur = [], [], 0.0
-        for r in runs:
-            target = {0: 0.0, -1: 0.24 * fs, 1: -0.40 * fs}[r.script]
-            a = ""
-            if r.italic:
-                a += ' font-style="italic"'
-            if r.script:
-                a += f' font-size="{_f(fs * SCRIPT)}"'
-            if abs(target - cur) > 1e-9:
-                a += f' dy="{_f(target - cur)}"'
-                cur = target
-            rw = _run_width(r, fs)
-            if r.over:
-                tall = any(c.isupper() or c.isdigit() or c in "bdfhklt" for c in r.text)
-                yy = base + target - (0.80 if tall else 0.58) * fs * (SCRIPT if r.script else 1)
-                line = 'fill="none" stroke="#000" stroke-width="0.7" data-lint="skip"/>'
-                if r.over == "vec":
-                    x1, x2 = x + 0.5, x + max(rw, 6) + 1.5
-                    extra.append(f'<path d="M{_f(x1)},{_f(yy)} L{_f(x2)},{_f(yy)} '
-                                 f'M{_f(x2 - 3)},{_f(yy - 1.8)} L{_f(x2)},{_f(yy)} L{_f(x2 - 3)},{_f(yy + 1.8)}" '
-                                 + line)
-                else:
-                    extra.append(f'<path d="M{_f(x - 0.5)},{_f(yy)} L{_f(x + rw + 0.5)},{_f(yy)}" ' + line)
-            x += rw
-            spans.append(f"<tspan{a}>{escape(r.text)}</tspan>" if a else escape(r.text))
-        if fs != self.fs:
-            attrs += f' font-size="{_f(fs)}"'
-        if anchor != "middle":
-            attrs += f' text-anchor="{anchor}"'
-        return [f'<text x="{_f(ax)}" y="{_f(base)}"{attrs} xml:space="preserve">{"".join(spans)}</text>'] + extra
-
     def _label_svg(self, L):
         fs, (cx, cy) = L["fs"], L["c"]
         base = cy + 0.33 * fs
@@ -1101,35 +1225,7 @@ class Figure:
             out.append(f'<rect x="{_f(b[0])}" y="{_f(b[1])}" width="{_f(b[2] - b[0])}" '
                        f'height="{_f(b[3] - b[1])}" fill="#fff" stroke="none"/>')
         skip = ' data-lint="skip"' if L["bg"] else ""
-        groups = []   # 文字の塊と分数に分ける
-        for it in L["runs"]:
-            if isinstance(it, _Frac):
-                groups.append(it)
-            elif groups and isinstance(groups[-1], list):
-                groups[-1].append(it)
-            else:
-                groups.append([it])
-        x = cx - L["w"] / 2
-        for k, g in enumerate(groups):
-            w = sum(_run_width(r, fs) for r in g) if isinstance(g, list) else _run_width(g, fs)
-            if isinstance(g, list):
-                # 分数の隣の塊は分数側に寄せて固定する（文字幅の見積もりの誤差で隙間が開かない）
-                before, after = k > 0, k < len(groups) - 1
-                if before == after:
-                    out += self._runs_svg(g, x + w / 2, x, base, fs, "middle", skip)
-                elif after:
-                    out += self._runs_svg(g, x + w, x, base, fs, "end", skip)
-                else:
-                    out += self._runs_svg(g, x, x, base, fs, "start", skip)
-            else:
-                mid, bar = x + w / 2, base - 0.30 * fs
-                wn = sum(_run_width(r, fs) for r in g.num)
-                wd = sum(_run_width(r, fs) for r in g.den)
-                out += self._runs_svg(g.num, mid, mid - wn / 2, bar - 0.26 * fs, fs, "middle", skip)
-                out += self._runs_svg(g.den, mid, mid - wd / 2, bar + 0.92 * fs, fs, "middle", skip)
-                out.append(f'<path d="M{_f(x + 1.5)},{_f(bar)} L{_f(x + w - 1.5)},{_f(bar)}" fill="none" '
-                           f'stroke="#000" stroke-width="0.8" stroke-linecap="butt" data-lint="skip"/>')
-            x += w
+        out.append(_label_markup(L["runs"], cx, base, fs, "middle", attrs=skip, default_fs=self.fs))
         return "".join(out)
 
     # ---- 角・直角・等長・平行の印 ----
@@ -1519,19 +1615,36 @@ class Figure:
                                  "すべての力を同じ尺度で計算したか確かめる")
         return r
 
-    def spring(self, a, b, n=6, width=6, lead=7):
-        """ばね（ジグザグ）。n は山の数，width は振れ幅（px），lead は両端の直線部（px）。"""
+    def spring(self, a, b, n=6, width=6, lead=7, coiled=False):
+        """両端を結ぶばね。n は巻数，width は振幅，lead は末端の直線長（px）。
+
+        既定は折線。coiled=True はらせんを側面から投影した形である。
+        """
         pa, pb = self.px(a), self.px(b)
-        L = math.hypot(pb[0] - pa[0], pb[1] - pa[1])
-        u = ((pb[0] - pa[0]) / L, (pb[1] - pa[1]) / L)
-        nv = (u[1], -u[0])
-        seg = (L - 2 * lead) / (2 * n)
-        pts = [pa, (pa[0] + u[0] * lead, pa[1] + u[1] * lead)]
-        for i in range(2 * n):
-            s = lead + (i + 0.5) * seg
-            sg = width if i % 2 == 0 else -width
-            pts.append((pa[0] + u[0] * s + nv[0] * sg, pa[1] + u[1] * s + nv[1] * sg))
-        pts += [(pb[0] - u[0] * lead, pb[1] - u[1] * lead), pb]
+        length = dist(pa, pb)
+        if length == 0 or n < 1 or not isinstance(n, int) or width <= 0 or lead < 0:
+            raise ValueError("spring: 端点，巻数，振幅，直線部の長さを確認する")
+        if 2 * lead >= length:
+            lead = length / 4
+        direction = unit(sub(pb, pa))
+        normal = (direction[1], -direction[0])
+        pitch = (length - 2 * lead) / n
+        pts = [pa]
+        if coiled:
+            depth = min(width * 1.5, pitch * 0.45)
+            for i in range(n * 24 + 1):
+                turn = i / 24
+                phase = 2 * math.pi * turn
+                along = lead + pitch * turn + depth * math.sin(phase)
+                pts.append(add(pa, add(mul(direction, along), mul(normal, width * math.cos(phase)))))
+        else:
+            pts.append(add(pa, mul(direction, lead)))
+            for i in range(2 * n):
+                along = lead + (i + 0.5) * pitch / 2
+                offset = width if i % 2 == 0 else -width
+                pts.append(add(pa, add(mul(direction, along), mul(normal, offset))))
+            pts.append(sub(pb, mul(direction, lead)))
+        pts.append(pb)
         self._path(pts, style="aux", width=1.2)
 
     def pulley(self, c, r):
@@ -1587,7 +1700,7 @@ class Figure:
             self.field_mark(p, into=into, r=r)
         return pts
 
-    # ---- 物理：回路（JIS C 0617） ----
+    # ---- 物理：回路（JIS 形） ----
     def wire(self, *pts):
         """導線（折れ線）。"""
         self._path([self.px(p) for p in pts], style="circuit")
@@ -1681,6 +1794,10 @@ class Figure:
         """スイッチ。開いているときは片側から斜めに上がる線。"""
         P, m, u, n = self._component(a, b, 12, 9, label, side)
         self._path([P(-12), P(12) if closed else P(10, 9 * side)], style="circuit", register=False)
+        # 閉じた刃も導線と区別できるよう，両端に接点を残す。
+        for pos in (-12, 12):
+            x, y = P(pos)
+            self._put(f'<circle cx="{_f(x)}" cy="{_f(y)}" r="1.8" fill="#fff" stroke-width="1.2"/>')
 
     def _round(self, a, b, label, side, r=10):
         P, m, u, n = self._component(a, b, r, r, label, side)
@@ -1696,8 +1813,8 @@ class Figure:
 
     def meter(self, a, b, letter, label=None, side=1):
         """計器（円に立体の文字）。電流計は "A"，電圧計は "V"，検流計は "G"。"""
-        P, m = self._round(a, b, label, side, 10)
-        self._labels.append(dict(text=letter, runs=parse_label(letter), fs=12, w=8, h=12, anchor=m,
+        _, m = self._round(a, b, label, side, max(10, self.fs * 0.72))
+        self._labels.append(dict(text=letter, runs=parse_label(letter), fs=self.fs, w=self.fs, h=self.fs, anchor=m,
                                  d=(0.0, 0.0), dist=0, bg=True, away=None, plain=True))
 
     def ammeter(self, a, b, label=None, side=1):
@@ -1805,7 +1922,7 @@ class Figure:
                 w = sum(_run_width(r, size) for r in runs)
                 cx = self.ml + (self.xmax - self.xmin) * self.ux / 2
                 cx = min(max(cx, w / 2 + 4), self.W - w / 2 - 4)
-                out.extend(self._runs_svg(runs, cx, cx - w / 2, self.H - size * 0.75, size, "middle"))
+                out.extend(_runs_svg(runs, cx, cx - w / 2, self.H - size * 0.75, size, "middle"))
             out.append("</g>")
         out.append("</svg>")
         return "\n".join(out) + "\n"

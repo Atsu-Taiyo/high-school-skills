@@ -23,12 +23,12 @@ def parabola_area():
     x2 = hs.solve(lambda x: f(x) - g(x), 0, 3)    # 2
     fig = Figure(-2.6, 3.4, -1, 6.4, unit=40, title="放物線と直線で囲まれた部分",
                  desc="放物線 y=x^2 と直線 y=x+2 が x=-1, 2 で交わり，その間の囲まれた部分に斜線を引いた図")
-    fig.hatch(hs.region_between(g, f, x1, x2))
+    fig.hatch(hs.region_between(g, f, x1, x2), spacing=7)
     fig.axes(xticks=[(x1, "$-1$"), (x2, "$2$")], yticks=[(2, "$2$", "NW")])
     fig.plot(f, -2.6, 3.4)
     fig.line_through((x1, g(x1)), (x2, g(x2)))
     for x in (x1, x2):
-        fig.segment((x, 0), (x, f(x)), style="guide")
+        fig.coordinate_guides((x, f(x)), axes="x")
         fig.dot((x, f(x)))
     fig.label("$y=x^2$", (-2.3, f(-2.3)), dir="E", dist=8)
     fig.label("$y=x+2$", (2.6, g(2.6)), dir="SE", dist=3)
@@ -55,9 +55,9 @@ def triangle_circumcircle():
     fig.angle_mark(C, B, A, label="$\\theta$")
     G = hs.centroid(A, B, C)
     for name, p in (("A", A), ("B", B), ("C", C)):
-        fig.point(p, name, away=G)
-    fig.point(H, "H", dir="S")
-    fig.point(M, "M", dir="S")
+        fig.point(p, name, away=G, dot=False)
+    fig.point(H, "H", dir="S", dot=False)
+    fig.point(M, "M", dir="S", dot=False)
     fig.point(O, "O", dir="NE")
     fig.save(out("triangle-circumcircle.svg"))
 
@@ -71,26 +71,30 @@ def incline_forces():
     th = 30
     c, s = math.cos(math.radians(th)), math.sin(math.radians(th))
     e = hs.polar(1, th)                      # 斜面に沿って上向き
-    Q = (7, 7 * s / c)
-    fig = Figure(-0.6, 8.0, -0.5, 5.3, unit=50, title="斜面上の物体にはたらく力",
-                 desc="傾き θ の粗い斜面上で静止する質量 m の物体にはたらく重力 mg，垂直抗力 N，静止摩擦力 F と，"
-                      "重力の斜面に平行な成分 mg sinθ，垂直な成分 mg cosθ を示した図。矢印の長さは力の大きさに比例する")
-    fig.set_force_scale(2.3)                 # mg = 1 を長さ 2.3 で描く
-    fig.ground((-0.4, 0), (7.8, 0))
-    fig.polygon([(0, 0), (7, 0), Q])
-    fig.angle_mark((7, 0), (0, 0), Q, r=34, label="$\\theta$")
-    w, h = 1.5, 0.9
-    base = hs.mul(e, 5.2)
-    blk = fig.block(base, w, h, angle=th, fill="#e6e6e6", label="$m$", label_at=(0.62, 0.42))
+    Q = (5.3, 5.3 * s / c)
+    fig = Figure(-0.4, 11.6, -0.4, 4.3, unit=46, title="斜面上の物体と重力の分解",
+                 desc="左は粗い斜面上で静止する物体に働く重力，垂直抗力，摩擦力。"
+                      "右は同じ重力を斜面に平行な成分と垂直な成分に分解した図。左右の力は同一尺度である。")
+    fig.set_force_scale(2)
+    fig.ground((-0.2, 0), (5.5, 0))
+    fig.polygon([(0, 0), (Q[0], 0), Q])
+    fig.angle_mark((1, 0), (0, 0), Q, r=42, label=r"$\theta$")
+    blk = fig.block(hs.mul(e, 4.1), 1.55, 0.95, angle=th, fill="#eee",
+                    label="$m$", label_at=(0.6, 0.42))
     G = blk["center"]
-    P = hs.intersect_lines(G, hs.add(G, (0, -1)), (0, 0), Q)   # 重力の作用線と接触面の交点
-    v1, v2 = fig.components(G, (0, -fig.force_len(1)), th,
-                            labels=("$mg\\sin\\theta$", "$mg\\cos\\theta$"), dirs=("W", "E"))
-    fig.angle_mark(hs.add(G, (0, -1)), G, hs.add(G, v2), r=44, label="$\\theta$")
-    fig.force_polar(G, 1, -90, "$mg$", dir="SW", dot=True)
-    fig.force_polar(P, c, th + 90, "$N$", dot=True)             # N = mg cosθ
-    fig.force_polar(P, s, th, "$F$", dir=th - 90, dist=7, shift=5)          # F = mg sinθ，物体側へ 5px ずらす
+    P = hs.intersect_lines(G, hs.add(G, (0, -1)), (0, 0), Q)
+    fig.force_polar(G, 1, -90, "$mg$", dir="E", dot=True)
+    fig.force_polar(P, c, th + 90, "$N$", dot=True)
+    fig.force_polar(P, s, th, "$F$", dir="SE", dist=7, shift=5)
     fig.force_balance()
+
+    origin = (8.9, 3.25)
+    gravity = (0, -fig.force_len(1))
+    _, normal = fig.components(origin, gravity, th, labels=(r"$mg\sin\theta$", r"$mg\cos\theta$"),
+                               dirs=("NW", "E"))
+    fig.force(origin, gravity, "$mg$", dir="S", dot=True, record=False)
+    fig.angle_mark(hs.add(origin, gravity), origin, hs.add(origin, normal),
+                   r=39, label=r"$\theta$")
     fig.save(out("incline-forces.svg"))
 
 
@@ -177,7 +181,7 @@ def circuit_polarity():
                  desc="起電力 E の電池，スイッチ S，抵抗 R，電気容量 C のコンデンサーを直列につないだ回路。"
                       "電池の正極の側の極板に +Q，負極の側の極板に −Q がたまる")
     fig.battery((0, 3), (0, 0), "$E$", side=-1, polarity=True)        # 上が正極。＋−は回路の内側
-    fig.switch((0, 3), (2.4, 3), "S")
+    fig.switch((0, 3), (2.4, 3), "S", closed=True)
     fig.resistor((2.4, 3), (6, 3), "$R$")
     fig.capacitor((6, 3), (6, 0), "$C$", side=1, charges=("$+Q$", "$-Q$"))
     fig.wire((6, 0), (0, 0))
@@ -198,9 +202,10 @@ def cycle_direction():
     fig.xaxis("$V$", ticks=[(V1, "$V_1$"), (V3, "$V_2$")])
     fig.yaxis("$p$", ticks=[(p1, "$p_1$"), (p2, "$p_2$")])
     fig.label("O", (0, 0), dir="SW", dist=4)
-    for P in (A, B, C):
-        fig.segment((P[0], 0), P, style="guide")
-        fig.segment((0, P[1]), P, style="guide")
+    # A・B と A・C は各々同じ座標を共有する。投影は輪郭の外だけに置く。
+    fig.coordinate_guides(A)
+    fig.coordinate_guides(B, axes="y")
+    fig.coordinate_guides(C, axes="x")
     fig.segment(A, B, arrow="mid")                   # 定積
     fig.plot(iso, V1, V3)                            # 等温（曲線）
     Vm = (V1 + V3) / 2
@@ -233,7 +238,7 @@ def region_boundary():
     fig = Figure(-2.4, 3.6, -0.9, 5.6, unit=50, title="不等式の表す領域",
                  desc="連立不等式 y>x^2，y<x+2 の表す領域を斜線で示した図。境界線は含まないので破線で，"
                       "交点 (-1, 1)，(2, 4) は白丸で示す")
-    fig.hatch(hs.region_between(g, f, x1, x2))
+    fig.hatch(hs.region_between(g, f, x1, x2), spacing=7)
     fig.axes()
     # 境界である区間は bound（太い破線），その外は細い実線で形だけ示す
     fig.plot(f, x1, x2, style="bound")
@@ -244,7 +249,7 @@ def region_boundary():
     fig.segment((x2, g(x2)), (3.3, g(3.3)), style="aux")
     # 座標を読む補助線は guide（細い点線）
     for x in (x1, x2):
-        fig.segment((x, 0), (x, f(x)), style="guide")
+        fig.coordinate_guides((x, f(x)), axes="x")
         fig.dot((x, f(x)), open=True)
     fig.label("$-1$", (x1, 0), dir="S", dist=5)
     fig.label("$2$", (x2, 0), dir="S", dist=5)
@@ -252,6 +257,86 @@ def region_boundary():
     fig.leader("$y=x^2$", (0.95, f(0.95)), (1.3, 0.5), dir="S")
     fig.leader("$y=x+2$", (1.2, g(1.2)), (0.95, 4.45), dir="N")
     fig.save(out("region-boundary.svg"))
+
+
+def vectors():
+    fig = Figure(-0.6, 5.5, -0.6, 3.1, unit=52, title="ベクトルの和",
+                 desc="点 O を始点とする二つのベクトルの和は，平行四辺形の対角線になる。")
+    o, a, b = (0, 0), (3.3, 0), (1.2, 2.4)
+    end = hs.add(a, b)
+    fig.polyline([a, end, b], style="dash")
+    for tip, name, direction in [(a, r"$\vec{a}$", "S"), (b, r"$\vec{b}$", "NW")]:
+        fig.arrow(o, tip)
+        fig.label(name, hs.midpoint(o, tip), dir=direction)
+    fig.arrow(o, end)
+    fig.label(r"$\vec{a}+\vec{b}$", end, dir="NE")
+    fig.label("O", o, dir="SW")
+    fig.save(out("vector-sum.svg"))
+
+
+def solid():
+    vertices = {name: hs.oblique(p) for name, p in zip(
+        "ABCDEFGH", [(2,0,2), (2,3,2), (0,3,2), (0,0,2),
+                     (2,0,0), (2,3,0), (0,3,0), (0,0,0)])}
+    fig = Figure(-1.3, 3.5, -1.1, 2.5, unit=60, title="直方体の見える辺と隠れる辺",
+                 desc="上面と二側面が見える直方体。奥の頂点 H に集まる三辺は破線である。")
+    for edge in ("DH", "HE", "HG", "AB", "BC", "CD", "DA", "AE", "BF", "CG", "EF", "FG"):
+        a, b = edge
+        fig.segment(vertices[a], vertices[b], style="hidden" if "H" in edge else "main")
+    for name, direction in zip(vertices, ["W","SE","NE","NW","SW","SE","E","NE"]):
+        fig.label(name, vertices[name], dir=direction)
+    fig.save(out("solid.svg"))
+
+
+def wave():
+    wavelength = 4
+    fig = Figure(-0.55, 6, -1.4, 1.6, unit=49, aspect_ok=True, title="ある時刻の波形",
+                 desc="ある時刻の横波の変位 y と位置 x の関係。隣り合う山の位置の差が波長 λ である。")
+    fig.axes()
+    fig.plot(lambda x: math.sin(2 * math.pi * x / wavelength), 0, 5.8)
+    crest = wavelength / 4
+    fig.dimension((crest, 1), (crest + wavelength, 1), r"$\lambda$", offset=18)
+    fig.save(out("wave.svg"))
+
+
+def velocity():
+    fig = Figure(-0.5, 6.3, -1.6, 2.5, unit=49, aspect_ok=True, margin=40,
+                 title="速度と時刻", desc="速度は時刻 0 から 2 秒まで増加し，4 秒まで一定，"
+                 "その後減少して 5 秒で符号を変える。斜線は 2 秒から 4 秒までの変位に対応する。")
+    fig.hatch([(2,0), (4,0), (4,2), (2,2)], spacing=7)
+    fig.xaxis("$t$ [s]", ticks=[2, 4, (5, "$5$", "NE")], label_dir="S")
+    fig.yaxis("$v$ [m/s]", ticks=[-1,2], label_dir="N")
+    fig.label("O", (0,0), dir="SW")
+    fig.coordinate_guides((2,2))
+    fig.coordinate_guides((4,2), axes="x")
+    fig.polyline([(0,0), (2,2), (4,2), (5.5,-1)])
+    fig.save(out("velocity.svg"))
+
+
+def asymptote():
+    fig = Figure(-2.4, 4.5, -2.3, 3.7, unit=45, title="反比例のグラフの平行移動",
+                 desc="y=1+1/(x−1) の左右の枝と，漸近線 x=1，y=1 を示す。")
+    f = lambda x: 1 + 1 / (x - 1)
+    fig.segment((1, fig.ymin), (1, fig.ymax), style="dash")
+    fig.segment((fig.xmin, 1), (fig.xmax, 1), style="dash")
+    fig.axes(xticks=[(1, "$1$", "SE")], yticks=[(1, "$1$", "NW")])
+    fig.plot(f, fig.xmin, 1)
+    fig.plot(f, 1, fig.xmax)
+    fig.save(out("asymptote.svg"))
+
+
+def pulley():
+    fig = Figure(-2, 2, -1.5, 2.7, unit=51, title="定滑車に掛けた糸",
+                 desc="固定軸を持つ滑車の両側から糸を鉛直に垂らし，端に質量 m₁，m₂ の物体をつるした。")
+    c, r = (0, 1.45), 0.53
+    fig.ground((-0.85,2.55), (0.85,2.55), side=1)
+    fig.segment(c, (0,2.55), style="aux")
+    fig.pulley(c, r)
+    for x, y, label in [(-r,-1.2,"$m_1$"), (r,-0.65,"$m_2$")]:
+        block = fig.block((x,y), 0.88, 0.65, label=label)
+        fig.segment((x,c[1]), block["top"])
+    fig.arc(c, r, 0, 180)
+    fig.save(out("pulley.svg"))
 
 
 if __name__ == "__main__":
@@ -265,3 +350,9 @@ if __name__ == "__main__":
     cycle_direction()
     field_density()
     region_boundary()
+    vectors()
+    solid()
+    wave()
+    velocity()
+    asymptote()
+    pulley()

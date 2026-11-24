@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="260" height="270.2" viewBox="0 0 260 270.2" role="img" aria-labelledby="f01e777-t f01e777-d">
+<title id="f01e777-t">定滑車に掛けた糸</title>
+<desc id="f01e777-d">固定軸を持つ滑車の両側から糸を鉛直に垂らし，端に質量 m₁，m₂ の物体をつるした。</desc>
+<rect x="0" y="0" width="260" height="270.2" fill="#fff"/>
+<g fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+<path class="hatch" d="M95.65,35.65 L89.65,29.65 M101.65,35.65 L95.65,29.65 M107.65,35.65 L101.65,29.65 M113.65,35.65 L107.65,29.65 M119.65,35.65 L113.65,29.65 M125.65,35.65 L119.65,29.65 M131.65,35.65 L125.65,29.65 M137.65,35.65 L131.65,29.65 M143.65,35.65 L137.65,29.65 M149.65,35.65 L143.65,29.65 M155.65,35.65 L149.65,29.65 M161.65,35.65 L155.65,29.65 M167.65,35.65 L161.65,29.65" stroke-width="0.7" stroke-linecap="butt"/>
+<path d="M86.65,35.65 L173.35,35.65" stroke-width="1.5"/>
+<path d="M130,91.75 L130,35.65" stroke-width="1"/>
+<circle cx="130" cy="91.75" r="27.03" stroke-width="1.5" fill="#fff"/>
+<circle cx="130" cy="91.75" r="2" fill="#000" stroke="none"/>
+<path d="M80.53,226.9 L125.41,226.9 L125.41,193.75 L80.53,193.75 Z" stroke-width="1.5" fill="#fff"/>
+<path d="M102.97,91.75 L102.97,193.75" stroke-width="1.5"/>
+<path d="M134.59,198.85 L179.47,198.85 L179.47,165.7 L134.59,165.7 Z" stroke-width="1.5" fill="#fff"/>
+<path d="M157.03,91.75 L157.03,165.7" stroke-width="1.5"/>
+<path d="M157.03,91.75 L156.99,90.34 L156.88,88.92 L156.7,87.52 L156.44,86.13 L156.11,84.75 L155.71,83.4 L155.23,82.06 L154.69,80.76 L154.08,79.48 L153.41,78.24 L152.67,77.03 L151.87,75.86 L151.01,74.74 L150.09,73.66 L149.11,72.64 L148.09,71.66 L147.01,70.74 L145.89,69.88 L144.72,69.08 L143.51,68.34 L142.27,67.67 L140.99,67.06 L139.69,66.52 L138.35,66.04 L137,65.64 L135.62,65.31 L134.23,65.05 L132.83,64.87 L131.41,64.76 L130,64.72 L128.59,64.76 L127.17,64.87 L125.77,65.05 L124.38,65.31 L123,65.64 L121.65,66.04 L120.31,66.52 L119.01,67.06 L117.73,67.67 L116.48,68.34 L115.28,69.08 L114.11,69.88 L112.99,70.74 L111.91,71.66 L110.89,72.64 L109.91,73.66 L108.99,74.74 L108.13,75.86 L107.33,77.03 L106.59,78.24 L105.92,79.48 L105.31,80.76 L104.77,82.06 L104.29,83.4 L103.89,84.75 L103.56,86.13 L103.3,87.52 L103.12,88.92 L103.01,90.34 L102.97,91.75" stroke-width="1.5"/>
+</g>
+<g font-family="'Times New Roman', Times, 'Nimbus Roman', 'Liberation Serif', 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif CJK JP', serif" font-size="16" fill="#000" stroke="none" text-anchor="middle">
+<text x="102.97" y="215.61" xml:space="preserve"><tspan font-style="italic">m</tspan><tspan font-size="12" dy="3.84">1</tspan></text>
+<text x="157.03" y="187.56" xml:space="preserve"><tspan font-style="italic">m</tspan><tspan font-size="12" dy="3.84">2</tspan></text>
+</g>
+</svg>

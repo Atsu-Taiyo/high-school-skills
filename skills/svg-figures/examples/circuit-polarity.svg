@@ -12,7 +12,9 @@
 <path d="M70.4,132.2 L82.4,132.2" stroke-width="3" stroke-linecap="butt"/>
 <path d="M76.4,63.2 L117.2,63.2" stroke-width="1.2"/>
 <path d="M141.2,63.2 L182,63.2" stroke-width="1.2"/>
-<path d="M117.2,63.2 L139.2,54.2" stroke-width="1.2"/>
+<path d="M117.2,63.2 L141.2,63.2" stroke-width="1.2"/>
+<circle cx="117.2" cy="63.2" r="1.8" fill="#fff" stroke-width="1.2"/>
+<circle cx="141.2" cy="63.2" r="1.8" fill="#fff" stroke-width="1.2"/>
 <path d="M182,63.2 L246.2,63.2" stroke-width="1.2"/>
 <path d="M276.2,63.2 L340.4,63.2" stroke-width="1.2"/>
 <path d="M246.2,68.2 L276.2,68.2 L276.2,58.2 L246.2,58.2 Z" stroke-width="1.2" fill="#fff"/>

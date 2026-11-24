@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="373.2" height="248.4" viewBox="0 0 373.2 248.4" role="img" aria-labelledby="fa22f9f-t fa22f9f-d">
+<title id="fa22f9f-t">ベクトルの和</title>
+<desc id="fa22f9f-d">点 O を始点とする二つのベクトルの和は，平行四辺形の対角線になる。</desc>
+<defs>
+<marker id="fa22f9f-arr-e" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="6.4" refX="4" refY="3.2" orient="auto" overflow="visible"><path d="M0,0 L9,3.2 L0,6.4 L2.2,3.2 Z" fill="#000" stroke="none"/></marker>
+</defs>
+<rect x="0" y="0" width="373.2" height="248.4" fill="#fff"/>
+<g fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+<path d="M230.8,189.2 L293.2,64.4 L121.6,64.4" stroke-width="1" stroke-dasharray="5 3" stroke-linecap="butt"/>
+<path d="M59.2,189.2 L225.8,189.2" stroke-width="1.5" marker-end="url(#fa22f9f-arr-e)"/>
+<path d="M59.2,189.2 L119.36,68.87" stroke-width="1.5" marker-end="url(#fa22f9f-arr-e)"/>
+<path d="M59.2,189.2 L288.79,66.75" stroke-width="1.5" marker-end="url(#fa22f9f-arr-e)"/>
+</g>
+<g font-family="'Times New Roman', Times, 'Nimbus Roman', 'Liberation Serif', 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif CJK JP', serif" font-size="16" fill="#000" stroke="none" text-anchor="middle">
+<text x="145" y="208.48" xml:space="preserve"><tspan font-style="italic">a</tspan></text><path d="M141.66,199.2 L150.34,199.2 M147.34,197.4 L150.34,199.2 L147.34,201" fill="none" stroke="#000" stroke-width="0.7" data-lint="skip"/>
+<text x="82.32" y="119.84" xml:space="preserve"><tspan font-style="italic">b</tspan></text><path d="M78.98,107.04 L87.66,107.04 M84.66,105.24 L87.66,107.04 L84.66,108.84" fill="none" stroke="#000" stroke-width="0.7" data-lint="skip"/>
+<text x="312.64" y="57.44" xml:space="preserve"><tspan font-style="italic">a</tspan> + <tspan font-style="italic">b</tspan></text><path d="M297.94,48.16 L306.62,48.16 M303.62,46.36 L306.62,48.16 L303.62,49.96" fill="none" stroke="#000" stroke-width="0.7" data-lint="skip"/><path d="M320.66,44.64 L329.34,44.64 M326.34,42.84 L329.34,44.64 L326.34,46.44" fill="none" stroke="#000" stroke-width="0.7" data-lint="skip"/>
+<text x="49.52" y="206.72" xml:space="preserve">O</text>
+</g>
+</svg>

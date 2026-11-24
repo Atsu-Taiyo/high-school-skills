@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="344" height="272" viewBox="0 0 344 272" role="img" aria-labelledby="f730113-t f730113-d">
+<title id="f730113-t">直方体の見える辺と隠れる辺</title>
+<desc id="f730113-d">上面と二側面が見える直方体。奥の頂点 H に集まる三辺は破線である。</desc>
+<rect x="0" y="0" width="344" height="272" fill="#fff"/>
+<g fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+<path d="M106,58 L106,178" stroke-width="1" stroke-dasharray="5 3" stroke-linecap="butt"/>
+<path d="M106,178 L63.57,220.43" stroke-width="1" stroke-dasharray="5 3" stroke-linecap="butt"/>
+<path d="M106,178 L286,178" stroke-width="1" stroke-dasharray="5 3" stroke-linecap="butt"/>
+<path d="M63.57,100.43 L243.57,100.43" stroke-width="1.5"/>
+<path d="M243.57,100.43 L286,58" stroke-width="1.5"/>
+<path d="M286,58 L106,58" stroke-width="1.5"/>
+<path d="M106,58 L63.57,100.43" stroke-width="1.5"/>
+<path d="M63.57,100.43 L63.57,220.43" stroke-width="1.5"/>
+<path d="M243.57,100.43 L243.57,220.43" stroke-width="1.5"/>
+<path d="M286,58 L286,178" stroke-width="1.5"/>
+<path d="M63.57,220.43 L243.57,220.43" stroke-width="1.5"/>
+<path d="M243.57,220.43 L286,178" stroke-width="1.5"/>
+</g>
+<g font-family="'Times New Roman', Times, 'Nimbus Roman', 'Liberation Serif', 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif CJK JP', serif" font-size="16" fill="#000" stroke="none" text-anchor="middle">
+<text x="52.13" y="105.71" xml:space="preserve">A</text>
+<text x="253.26" y="117.95" xml:space="preserve">B</text>
+<text x="295.68" y="51.04" xml:space="preserve">C</text>
+<text x="96.32" y="51.04" xml:space="preserve">D</text>
+<text x="53.89" y="237.95" xml:space="preserve">E</text>
+<text x="253.26" y="237.95" xml:space="preserve">F</text>
+<text x="297.44" y="183.28" xml:space="preserve">G</text>
+<text x="115.68" y="171.04" xml:space="preserve">H</text>
+</g>
+</svg>

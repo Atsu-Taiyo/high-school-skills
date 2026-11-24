@@ -1,36 +1,39 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="486" height="346" viewBox="0 0 486 346" role="img" aria-labelledby="ff06284-t ff06284-d">
-<title id="ff06284-t">斜面上の物体にはたらく力</title>
-<desc id="ff06284-d">傾き θ の粗い斜面上で静止する質量 m の物体にはたらく重力 mg，垂直抗力 N，静止摩擦力 F と，重力の斜面に平行な成分 mg sinθ，垂直な成分 mg cosθ を示した図。矢印の長さは力の大きさに比例する</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="608" height="272.2" viewBox="0 0 608 272.2" role="img" aria-labelledby="f71000c-t f71000c-d">
+<title id="f71000c-t">斜面上の物体と重力の分解</title>
+<desc id="f71000c-d">左は粗い斜面上で静止する物体に働く重力，垂直抗力，摩擦力。右は同じ重力を斜面に平行な成分と垂直な成分に分解した図。左右の力は同一尺度である。</desc>
 <defs>
-<marker id="ff06284-arr-e" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="6.4" refX="4" refY="3.2" orient="auto" overflow="visible"><path d="M0,0 L9,3.2 L0,6.4 L2.2,3.2 Z" fill="#000" stroke="none"/></marker>
-<marker id="ff06284-frc-e" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="8.8" refX="5" refY="4.4" orient="auto" overflow="visible"><path d="M0,0 L12,4.4 L0,8.8 L3,4.4 Z" fill="#000" stroke="none"/></marker>
+<marker id="f71000c-arr-e" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="6.4" refX="4" refY="3.2" orient="auto" overflow="visible"><path d="M0,0 L9,3.2 L0,6.4 L2.2,3.2 Z" fill="#000" stroke="none"/></marker>
+<marker id="f71000c-frc-e" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="8.8" refX="5" refY="4.4" orient="auto" overflow="visible"><path d="M0,0 L12,4.4 L0,8.8 L3,4.4 Z" fill="#000" stroke="none"/></marker>
 </defs>
-<rect x="0" y="0" width="486" height="346" fill="#fff"/>
+<rect x="0" y="0" width="608" height="272.2" fill="#fff"/>
 <g fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-<path class="hatch" d="M47,293 L41,299 M53,293 L47,299 M59,293 L53,299 M65,293 L59,299 M71,293 L65,299 M77,293 L71,299 M83,293 L77,299 M89,293 L83,299 M95,293 L89,299 M101,293 L95,299 M107,293 L101,299 M113,293 L107,299 M119,293 L113,299 M125,293 L119,299 M131,293 L125,299 M137,293 L131,299 M143,293 L137,299 M149,293 L143,299 M155,293 L149,299 M161,293 L155,299 M167,293 L161,299 M173,293 L167,299 M179,293 L173,299 M185,293 L179,299 M191,293 L185,299 M197,293 L191,299 M203,293 L197,299 M209,293 L203,299 M215,293 L209,299 M221,293 L215,299 M227,293 L221,299 M233,293 L227,299 M239,293 L233,299 M245,293 L239,299 M251,293 L245,299 M257,293 L251,299 M263,293 L257,299 M269,293 L263,299 M275,293 L269,299 M281,293 L275,299 M287,293 L281,299 M293,293 L287,299 M299,293 L293,299 M305,293 L299,299 M311,293 L305,299 M317,293 L311,299 M323,293 L317,299 M329,293 L323,299 M335,293 L329,299 M341,293 L335,299 M347,293 L341,299 M353,293 L347,299 M359,293 L353,299 M365,293 L359,299 M371,293 L365,299 M377,293 L371,299 M383,293 L377,299 M389,293 L383,299 M395,293 L389,299 M401,293 L395,299 M407,293 L401,299 M413,293 L407,299 M419,293 L413,299 M425,293 L419,299 M431,293 L425,299 M437,293 L431,299 M443,293 L437,299" stroke-width="0.7" stroke-linecap="butt"/>
-<path d="M38,293 L448,293" stroke-width="1.5"/>
-<path d="M58,293 L408,293 L408,90.93 Z" stroke-width="1.5"/>
-<path d="M92,293 L91.87,290.04 L91.48,287.1 L90.84,284.2 L89.95,281.37 L88.81,278.63 L87.44,276" stroke-width="1"/>
-<path d="M250.69,181.75 L315.64,144.25 L293.14,105.28 L228.19,142.78 Z" stroke-width="1.5" fill="#e6e6e6"/>
-<path d="M271.92,143.51 L226.45,169.76" stroke-width="1" stroke-dasharray="5 3" stroke-linecap="butt" marker-end="url(#ff06284-arr-e)"/>
-<path d="M222.12,172.26 L271.92,258.51" stroke-width="1" stroke-dasharray="5 3" stroke-linecap="butt"/>
-<path d="M271.92,143.51 L319.21,225.43" stroke-width="1" stroke-dasharray="5 3" stroke-linecap="butt" marker-end="url(#ff06284-arr-e)"/>
-<path d="M321.71,229.76 L271.92,258.51" stroke-width="1" stroke-dasharray="5 3" stroke-linecap="butt"/>
-<path d="M271.92,187.51 L275.75,187.35 L279.56,186.85 L283.3,186.02 L286.97,184.86 L290.51,183.39 L293.92,181.62" stroke-width="1"/>
-<path d="M271.92,143.51 L271.92,251.51" stroke-width="2.2" marker-end="url(#ff06284-frc-e)"/>
-<path d="M271.92,169.5 L225.62,89.31" stroke-width="2.2" marker-end="url(#ff06284-frc-e)"/>
-<path d="M269.42,165.17 L313.15,139.92" stroke-width="2.2" marker-end="url(#ff06284-frc-e)"/>
-<circle cx="271.92" cy="143.51" r="2.4" fill="#000" stroke="none"/>
-<circle cx="271.92" cy="169.5" r="2.4" fill="#000" stroke="none"/>
+<path class="hatch" d="M46.2,225.8 L40.2,231.8 M52.2,225.8 L46.2,231.8 M58.2,225.8 L52.2,231.8 M64.2,225.8 L58.2,231.8 M70.2,225.8 L64.2,231.8 M76.2,225.8 L70.2,231.8 M82.2,225.8 L76.2,231.8 M88.2,225.8 L82.2,231.8 M94.2,225.8 L88.2,231.8 M100.2,225.8 L94.2,231.8 M106.2,225.8 L100.2,231.8 M112.2,225.8 L106.2,231.8 M118.2,225.8 L112.2,231.8 M124.2,225.8 L118.2,231.8 M130.2,225.8 L124.2,231.8 M136.2,225.8 L130.2,231.8 M142.2,225.8 L136.2,231.8 M148.2,225.8 L142.2,231.8 M154.2,225.8 L148.2,231.8 M160.2,225.8 L154.2,231.8 M166.2,225.8 L160.2,231.8 M172.2,225.8 L166.2,231.8 M178.2,225.8 L172.2,231.8 M184.2,225.8 L178.2,231.8 M190.2,225.8 L184.2,231.8 M196.2,225.8 L190.2,231.8 M202.2,225.8 L196.2,231.8 M208.2,225.8 L202.2,231.8 M214.2,225.8 L208.2,231.8 M220.2,225.8 L214.2,231.8 M226.2,225.8 L220.2,231.8 M232.2,225.8 L226.2,231.8 M238.2,225.8 L232.2,231.8 M244.2,225.8 L238.2,231.8 M250.2,225.8 L244.2,231.8 M256.2,225.8 L250.2,231.8 M262.2,225.8 L256.2,231.8 M268.2,225.8 L262.2,231.8 M274.2,225.8 L268.2,231.8 M280.2,225.8 L274.2,231.8 M286.2,225.8 L280.2,231.8 M292.2,225.8 L286.2,231.8 M298.2,225.8 L292.2,231.8" stroke-width="0.7" stroke-linecap="butt"/>
+<path d="M37.2,225.8 L299.4,225.8" stroke-width="1.5"/>
+<path d="M46.4,225.8 L290.2,225.8 L290.2,85.04 Z" stroke-width="1.5"/>
+<path d="M88.4,225.8 L88.24,222.14 L87.76,218.51 L86.97,214.93 L85.87,211.44 L84.46,208.05 L82.77,204.8" stroke-width="1"/>
+<path d="M178.86,149.32 L240.61,113.68 L218.76,75.83 L157.01,111.48 Z" stroke-width="1.5" fill="#eee"/>
+<path d="M198.81,112.58 L198.81,197.58" stroke-width="2.2" marker-end="url(#f71000c-frc-e)"/>
+<path d="M198.81,137.81 L162.47,74.87" stroke-width="2.2" marker-end="url(#f71000c-frc-e)"/>
+<path d="M196.31,133.48 L230.08,113.98" stroke-width="2.2" marker-end="url(#f71000c-frc-e)"/>
+<path d="M455.8,76.3 L420.29,96.8" stroke-width="1" stroke-dasharray="5 3" stroke-linecap="butt" marker-end="url(#f71000c-arr-e)"/>
+<path d="M415.96,99.3 L455.8,168.3" stroke-width="1" stroke-dasharray="5 3" stroke-linecap="butt"/>
+<path d="M455.8,76.3 L493.14,140.97" stroke-width="1" stroke-dasharray="5 3" stroke-linecap="butt" marker-end="url(#f71000c-arr-e)"/>
+<path d="M495.64,145.3 L455.8,168.3" stroke-width="1" stroke-dasharray="5 3" stroke-linecap="butt"/>
+<path d="M455.8,76.3 L455.8,161.3" stroke-width="2.2" marker-end="url(#f71000c-frc-e)"/>
+<path d="M455.8,115.3 L459.2,115.15 L462.57,114.71 L465.89,113.97 L469.14,112.95 L472.28,111.65 L475.3,110.07" stroke-width="1"/>
+<circle cx="198.81" cy="112.58" r="2.4" fill="#000" stroke="none"/>
+<circle cx="198.81" cy="137.81" r="2.4" fill="#000" stroke="none"/>
+<circle cx="455.8" cy="76.3" r="2.4" fill="#000" stroke="none"/>
 </g>
 <g font-family="'Times New Roman', Times, 'Nimbus Roman', 'Liberation Serif', 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif CJK JP', serif" font-size="16" fill="#000" stroke="none" text-anchor="middle">
-<text x="97.58" y="285.6" xml:space="preserve"><tspan font-style="italic">θ</tspan></text>
-<text x="287.33" y="128.99" xml:space="preserve"><tspan font-style="italic">m</tspan></text>
-<text x="189.92" y="177.54" xml:space="preserve"><tspan font-style="italic">mg</tspan> sin <tspan font-style="italic">θ</tspan></text>
-<text x="355.19" y="235.04" xml:space="preserve"><tspan font-style="italic">mg</tspan> cos <tspan font-style="italic">θ</tspan></text>
-<text x="285.57" y="202.19" xml:space="preserve"><tspan font-style="italic">θ</tspan></text>
-<text x="258.69" y="274.62" xml:space="preserve"><tspan font-style="italic">mg</tspan></text>
-<text x="216.04" y="77.06" xml:space="preserve"><tspan font-style="italic">N</tspan></text>
-<text x="326.79" y="155.76" xml:space="preserve"><tspan font-style="italic">F</tspan></text>
+<text x="93.71" y="216.33" xml:space="preserve"><tspan font-style="italic">θ</tspan></text>
+<text x="212.74" y="99.21" xml:space="preserve"><tspan font-style="italic">m</tspan></text>
+<text x="213.21" y="209.86" xml:space="preserve"><tspan font-style="italic">mg</tspan></text>
+<text x="152.89" y="62.62" xml:space="preserve"><tspan font-style="italic">N</tspan></text>
+<text x="246.53" y="128.71" xml:space="preserve"><tspan font-style="italic">F</tspan></text>
+<text x="385.23" y="93.04" xml:space="preserve"><tspan font-style="italic">mg</tspan> sin <tspan font-style="italic">θ</tspan></text>
+<text x="529.12" y="150.58" xml:space="preserve"><tspan font-style="italic">mg</tspan> cos <tspan font-style="italic">θ</tspan></text>
+<text x="455.8" y="185.58" xml:space="preserve"><tspan font-style="italic">mg</tspan></text>
+<text x="468.16" y="130.15" xml:space="preserve"><tspan font-style="italic">θ</tspan></text>
 </g>
 </svg>

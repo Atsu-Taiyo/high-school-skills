@@ -18,12 +18,16 @@
          引き出し線が他の線・斜線の領域を横切る／太い矢印（力）が文字に接している
          文字どうしの重なり／文字と線の重なり／線が viewBox の外に出ている
          斜線の分数（5/6 など）／座標のカンマの後に空白が無い（(0,0,2) など）
-         白黒以外の色／<foreignObject>・<image> の使用
+         白黒でも data-source-colors の原図色でもない色／<foreignObject>・<image> の使用
+         構造式内の原子名が斜体・数式用書体（元素記号は立体で組む）
          図中の説明文（長い和文，句読点のある文）／2文以上の注記／度の記号が「˚」「º」
 
 文字の箱は字数と font-size からの概算なので，重なりの指摘は「見に行く場所」の案内と考える。
 最終判断は PNG にして目で見る。class="hatch" の要素と data-lint="skip" の付いた要素
-（とその子孫）は，線との重なりの検査から外す（斜線の上に白い下地つきで置いた文字など）。
+（とその子孫）は，線との重なりの検査から外す（斜線の上に白い下地つきで置いた文字など）。 原図から写した色はルートの data-source-colors に列挙する（例: data-source-colors="#285197,#8e253b"）。列挙した色と白黒は警告しない。
+Mode A（ルートに data-mode="A"、または --intent=PATH）では、図と同名の <図>.intent.md（意図仕様。
+書式は references/intent-template.md）と照合する。仕様が無い、仕様の文字・印が図に無い、図に仕様に無い文字が
+ある（勝手な追加）、判読不能とした候補を描いている場合は WARN。
 終了コード: ERROR があれば 1（--strict なら WARN でも 1），無ければ 0。
 """
 import math
@@ -31,11 +35,13 @@ import re
 import sys
 import xml.etree.ElementTree as ET
 
+import intent_check
+from math_diagnostics import NUM, font_px, length, math_issues, prop, suggested_tex, text_runs
+
 SVG = "{http://www.w3.org/2000/svg}"
 XLINK = "{http://www.w3.org/1999/xlink}"
 SKIP_TAGS = {"defs", "clipPath", "mask", "marker", "pattern", "symbol", "title", "desc",
              "style", "metadata", "linearGradient", "radialGradient"}
-NUM = r"[-+]?(?:\d*\.\d+|\d+\.?)(?:[eE][-+]?\d+)?"
 GRAY = {"none", "black", "white", "gray", "grey", "silver", "dimgray", "darkgray", "lightgray",
         "gainsboro", "whitesmoke", "currentcolor", "transparent", "inherit"}
 
@@ -44,25 +50,8 @@ def local(tag):
     return tag.split("}", 1)[1] if isinstance(tag, str) and tag.startswith("{") else tag
 
 
-def prop(el, name):
-    """属性，なければ style="..." の中の値。"""
-    v = el.get(name)
-    if v is not None:
-        return v.strip()
-    m = re.search(r"(?:^|;)\s*" + re.escape(name) + r"\s*:\s*([^;]+)", el.get("style") or "")
-    return m.group(1).strip() if m else None
-
-
 def nums(s):
     return [float(x) for x in re.findall(NUM, s or "")]
-
-
-def length(v, default=0.0):
-    m = re.match(r"\s*(" + NUM + r")\s*([a-z%]*)", v or "")
-    if not m:
-        return default
-    k = {"": 1, "px": 1, "pt": 96 / 72, "mm": 96 / 25.4, "cm": 96 / 2.54, "in": 96}.get(m.group(2))
-    return float(m.group(1)) * k if k else default
 
 
 # ---- 変換行列 (a, b, c, d, e, f) ----
@@ -216,17 +205,6 @@ def char_em(c):
     return 0.48
 
 
-def font_px(v, parent):
-    if not v:
-        return parent
-    v = v.strip()
-    if v.endswith("%"):
-        return parent * float(v[:-1]) / 100
-    if v.endswith("em"):
-        return parent * float(v[:-2])
-    return length(v, parent)
-
-
 def text_width(el, fs):
     w = sum(char_em(c) for c in re.sub(r"\s+", " ", el.text or "")) * fs
     for ch in el:
@@ -261,18 +239,38 @@ def is_white(v):
     return (v or "").lower().replace(" ", "") in ("#fff", "#ffffff", "white", "rgb(255,255,255)")
 
 
-def is_gray(v):
+def normalize_color(v):
+    """色指定を比較用に整える（小文字、#rgb を #rrggbb へ、rgb() を十六進へ）。"""
     v = (v or "").strip().lower()
+    m = re.fullmatch(r"#([0-9a-f]{3})", v)
+    if m:
+        return "#" + "".join(c * 2 for c in m.group(1))
+    m = re.fullmatch(r"#([0-9a-f]{6})", v)
+    if m:
+        return "#" + m.group(1)
+    m = re.fullmatch(r"rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)", v)
+    if m:
+        r, g, b = (max(0, min(255, int(x))) for x in m.groups())
+        return f"#{r:02x}{g:02x}{b:02x}"
+    return v
+
+
+def is_gray(v):
+    v = normalize_color(v)
     if v in GRAY or v.startswith("url("):
         return True
-    m = re.fullmatch(r"#([0-9a-f]{3}|[0-9a-f]{6})", v)
-    if m:
-        h = m.group(1)
-        if len(h) == 3:
-            return h[0] == h[1] == h[2]
-        return h[0:2] == h[2:4] == h[4:6]
-    m = re.fullmatch(r"rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)", v)
-    return bool(m) and m.group(1) == m.group(2) == m.group(3)
+    m = re.fullmatch(r"#([0-9a-f]{6})", v)
+    return bool(m) and m.group(1)[0:2] == m.group(1)[2:4] == m.group(1)[4:6]
+
+
+def parse_source_colors(root):
+    """ルートの data-source-colors（空白・カンマ区切り）に書いた原図の色。"""
+    raw = (root.get("data-source-colors") or root.get("data-source-palette") or "").strip()
+    toks = re.findall(
+        r"#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{3})|rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\)|[A-Za-z]+",
+        raw,
+    )
+    return {normalize_color(tok) for tok in toks}
 
 
 MIN_TEXT_PX, MIN_BODY_PX, MIN_DIM_PX, DISPLAY_WIDTH = 12.0, 16.0, 28.0, 650.0
@@ -286,7 +284,44 @@ def _cross(p, q, a, b):
     return d1 * d2 < 0 and d3 * d4 < 0
 
 
-def lint(path, display_width=None):
+
+# High-school element symbols, two-letter first. Used only to typographically
+# recognise atom labels inside structural formulas (not point names in math).
+_CHEM_ELEMENTS = (
+    "He", "Li", "Be", "Ne", "Na", "Mg", "Al", "Si", "Cl", "Ar", "Ca", "Sc", "Ti",
+    "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn", "Ga", "Ge", "As", "Se", "Br", "Kr",
+    "Rb", "Sr", "Ag", "Cd", "Sn", "Sb", "Xe", "Cs", "Ba", "Pt", "Au", "Hg", "Pb",
+    "Bi", "U", "B", "C", "N", "O", "F", "H", "I", "K", "P", "S", "V", "W",
+)
+_CHEM_EL_RE = "|".join(_CHEM_ELEMENTS)
+_ATOM_SCRIPT = str.maketrans(
+    "₀₁₂₃₄₅₆₇₈₉⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻＋−",
+    "01234567890123456789+-+-",
+)
+_ATOM_LABEL_RE = re.compile(
+    r"^\[?(?:(?:" + _CHEM_EL_RE + r")\d*)+\]?\d*[+-]?$"
+)
+_MATH_FACE_RE = re.compile(
+    r"italic|oblique|\bmath\b|stix|latin modern|cambria math|tex gyre|"
+    r"asana|pagella math|dejavu math|fira math|mathjax|katex",
+    re.I,
+)
+
+
+def is_atom_label_text(s):
+    """True for C, OH, CH₃, Cl⁻, [NH₄]⁺ and similar chemical labels."""
+    body = re.sub(r"\s+", "", (s or "")).translate(_ATOM_SCRIPT)
+    return bool(body) and bool(_ATOM_LABEL_RE.fullmatch(body))
+
+
+def is_italic_or_math_type(font_style, font_family, extra_styles=()):
+    styles = [font_style or "", *(extra_styles or ())]
+    if any("italic" in (s or "").lower() or "oblique" in (s or "").lower() for s in styles):
+        return True
+    return bool(_MATH_FACE_RE.search(font_family or ""))
+
+
+def lint(path, display_width=None, strict=False, intent=None):
     """(errors, warnings) を返す。display_width は教材に置くときの表示幅（px）。"""
     E, Wn = [], []
     try:
@@ -298,6 +333,7 @@ def lint(path, display_width=None):
     if root.tag != SVG + "svg":
         return ['ルート要素が <svg xmlns="http://www.w3.org/2000/svg"> でない'], []
 
+    source_layout = root.get("data-mode") in ("B", "faithful")
     vb = nums(root.get("viewBox"))
     if len(vb) != 4 or vb[2] <= 0 or vb[3] <= 0:
         E.append("viewBox が無い，または不正（\"0 0 幅 高さ\" を指定する）")
@@ -352,16 +388,34 @@ def lint(path, display_width=None):
         if c > 1:
             E.append(f'id="{k}" が重複している')
 
+    # 矢じりの定義を失った SVG は，ブラウザで静かにただの線になる。
+    marker_ids = {el.get("id") for el in root.iter(SVG + "marker")}
+    for el in root.iter():
+        for attr in ("marker-start", "marker-mid", "marker-end"):
+            ref = prop(el, attr) or ""
+            fragment = re.fullmatch(r"""url\(\s*['"]?#([^)'"]+)['"]?\s*\)""", ref)
+            if fragment and fragment.group(1) not in marker_ids:
+                E.append(f"{attr} の矢じり {ref} に対応する marker 定義が無い")
+
     def walk(el, ctm, st):
         tag = local(el.tag)
         if tag in SKIP_TAGS or not isinstance(el.tag, str):
             return
         ctm = mat_mul(ctm, parse_transform(el.get("transform")))
         st = dict(st)
-        for name in ("stroke", "fill", "text-anchor"):
+        for name in ("stroke", "fill", "text-anchor", "stroke-dasharray",
+                     "font-style", "font-family"):
             v = prop(el, name)
             if v is not None:
                 st[name] = v
+        if el.get("data-math-label") is not None:
+            st["generated"] = True
+        role = (el.get("data-role") or "").strip()
+        chem = (el.get("data-chem") or "").strip()
+        if role == "chem-structure" or chem == "structure":
+            st["chem_structure"] = True
+        if role == "atom-label":
+            st["atom_label"] = True
         st["fs"] = font_px(prop(el, "font-size"), st["fs"])
         sw = prop(el, "stroke-width")
         if sw is not None:
@@ -409,17 +463,35 @@ def lint(path, display_width=None):
             content = re.sub(r"\s+", " ", "".join(el.itertext())).strip()
             if content:
                 k = math.sqrt(abs(ctm[0] * ctm[3] - ctm[1] * ctm[2]))
-                sub = [font_px(prop(ch, "font-size"), fs) for ch in el.iter()
-                       if ch is not el and prop(ch, "font-size") and "".join(ch.itertext()).strip()]
+                runs = text_runs(el, fs, st.get("font-style", ""), st.get("font-family", ""))
+                chem = bool(st.get("chem_structure") or st.get("atom_label"))
+                issues = math_issues(runs, generated=st.get("generated"), chem=chem)
+                if issues:
+                    tex = suggested_tex(runs, atom=chem and is_atom_label_text(content))
+                    example = f"（候補 {tex}）" if "$" in tex else ""
+                    for message, definite in issues:
+                        (E if definite and strict else Wn).append(f"文字「{content}」 {message}{example}")
+                sizes = [r.size for r in runs if r.text.strip() and (not source_layout or r.script)]
+                smallest = min(sizes, default=math.inf if source_layout else fs)
                 texts.append(dict(s=content, box=box(corners), inner=box(inner), fs=fs * k,
-                                  fsmin=min([fs] + sub) * k, skip=st.get("skip", False)))
+                                  fsmin=smallest * k, skip=st.get("skip", False),
+                                  font_style=prop(el, "font-style") or st.get("font-style") or "",
+                                  font_family=prop(el, "font-family") or st.get("font-family") or "",
+                                  chem_structure=bool(st.get("chem_structure")),
+                                  atom_label=bool(st.get("atom_label") or role == "atom-label"),
+                                  tspan_style=[prop(ch, "font-style") or "" for ch in el.iter()
+                                               if ch is not el]))
             return
         if polys and (stroked or filled):
             hatch = "hatch" in (el.get("class") or "").split()
             role = el.get("data-role") or ""
             w = st.get("sw", 1.0)
             ms, me = el.get("marker-start"), el.get("marker-end")
-            dashed = bool(prop(el, "stroke-dasharray"))
+            pattern = st.get("stroke-dasharray", "none")
+            dashed = pattern != "none" and any(v > 0 for v in nums(pattern))
+            if role == "coordinate-guide" and not source_layout:
+                if not stroked or not dashed or w >= 1.0:
+                    Wn.append("座標の読取り線は軸より細い点線で描く（基準線幅 0.7）")
             for pts in polys:
                 pts = [mat_apply(ctm, p) for p in pts]
                 segs.extend((a, b, st.get("skip", False), tag) for a, b in zip(pts, pts[1:]))
@@ -443,6 +515,23 @@ def lint(path, display_width=None):
     if not segs and not texts:
         E.append("描画要素が1つも無い（空の図）")
 
+    source = parse_source_colors(root)
+    bad = sorted(c for c in colors if not is_gray(c) and normalize_color(c) not in source)
+    if bad:
+        Wn.append("白黒でも原図の色でもない色がある: " + ", ".join(bad[:6]))
+
+    vw = vb[2] if vb else 0.0
+    shown = f"表示幅 {vw * scale:.0f}px" + (f"（viewBox の幅 {vw:.0f}px を {scale:.2f} 倍）" if scale < 0.999 else "")
+    tiny = [t for t in texts if t["fsmin"] * scale < MIN_TEXT_PX - 0.05]
+    if tiny:
+        Wn.append(f"最小の文字が小さい: {shown}で {min(t['fsmin'] for t in tiny) * scale:.1f}px の文字（添字・指数・注記）が "
+                  f"{len(tiny)} 個（例「{tiny[0]['s']}」）。{MIN_TEXT_PX:.0f}px 以上＝font-size {MIN_TEXT_PX / scale:.1f} 以上にする")
+
+    # Measured lettering and cropped marks are checked against the registered
+    # photo; construction spacing, and estimated glyph boxes do not apply.
+    if source_layout:
+        return E, Wn
+
     fmt = lambda b: f"({b[0]:.0f},{b[1]:.0f})–({b[2]:.0f},{b[3]:.0f})"
     if vb:
         x0, y0, x1, y1 = vb[0], vb[1], vb[0] + vb[2], vb[1] + vb[3]
@@ -455,18 +544,12 @@ def lint(path, display_width=None):
         if out:
             p = out[0][0]
             Wn.append(f"線が viewBox の外に出ている（{len(out)} か所。例 ({p[0]:.0f},{p[1]:.0f}) 付近）")
-    vw = vb[2] if vb else 0.0
-    shown = f"表示幅 {vw * scale:.0f}px" + (f"（viewBox の幅 {vw:.0f}px を {scale:.2f} 倍）" if scale < 0.999 else "")
     body = [t for t in texts if t["fs"] * scale < MIN_BODY_PX - 0.05 and not t["s"].startswith("※")
             and not t["skip"]]
-    tiny = [t for t in texts if t["fsmin"] * scale < MIN_TEXT_PX - 0.05]
     if body:
         Wn.append(f"本文字が小さい: {shown}で {min(t['fs'] for t in body) * scale:.1f}px の文字が {len(body)} 個"
                   f"（例「{body[0]['s']}」）。{MIN_BODY_PX:.0f}px 以上＝font-size {MIN_BODY_PX / scale:.1f} 以上にする"
                   "（図の幅を表示幅以下にし，一部の文字だけ小さくしない）")
-    if tiny:
-        Wn.append(f"最小の文字が小さい: {shown}で {min(t['fsmin'] for t in tiny) * scale:.1f}px の文字（添字・指数・注記）が "
-                  f"{len(tiny)} 個（例「{tiny[0]['s']}」）。{MIN_TEXT_PX:.0f}px 以上＝font-size {MIN_TEXT_PX / scale:.1f} 以上にする")
     # 短い寸法：細い両矢印の線，または向かい合う2つの矢じり（外向きの寸法）の間隔
     short = []
     for a, b, ms, me, role in arrows:
@@ -525,10 +608,17 @@ def lint(path, display_width=None):
         elif cjk >= 12 or "。" in body or "，" in body:
             Wn.append(f"文字「{body}」は説明文になっている（図中は記号と短い名称だけ。説明・凡例は本文のキャプションへ）")
     for t in texts:
+        if re.search(r"\\[A-Za-z]+|\$[^$]+\$", t["s"]):
+            Wn.append(f"文字「{t['s']}」に未組版の数式が残っている（text・tspan に展開する）")
         if re.search(r"[\dπ]\s*/\s*\d", t["s"]):
             Wn.append(f"文字「{t['s']}」に斜線の分数がある（分数は分子・括線・分母の縦組みにする）")
         if re.search(r"\([^()]*,\S", t["s"]):
             Wn.append(f"文字「{t['s']}」の座標のカンマの後に空白が無い（(0, 0, 2) のように空ける）")
+        in_structure = t.get("chem_structure") or t.get("atom_label")
+        if in_structure and is_atom_label_text(t["s"]) and is_italic_or_math_type(
+                t.get("font_style"), t.get("font_family"), t.get("tspan_style")):
+            Wn.append(f"構造式の原子名「{t['s']}」が斜体または数式用の書体になっている"
+                      "（元素記号は立体の化学式として組む）")
     for i, a in enumerate(texts):
         for b in texts[i + 1:]:
             ox = min(a["box"][2], b["box"][2]) - max(a["box"][0], b["box"][0])
@@ -543,9 +633,11 @@ def lint(path, display_width=None):
             a, b = hits[0]
             Wn.append(f"文字「{t['s']}」に線が重なっている {fmt(t['box'])}"
                       f"（線 ({a[0]:.0f},{a[1]:.0f})→({b[0]:.0f},{b[1]:.0f}) ほか計 {len(hits)} 本）")
-    bad = sorted(c for c in colors if not is_gray(c))
-    if bad:
-        Wn.append("白黒以外の色がある: " + ", ".join(bad[:6]) + "（白黒印刷で区別できるか確かめる）")
+    # Mode A: 意図仕様（<図>.intent.md）との照合。--intent=PATH か data-mode="A" のとき
+    if intent or root.get("data-mode") == "A":
+        _e, _w = intent_check.check(path, intent if isinstance(intent, str) else None)
+        E.extend(_e)
+        Wn.extend(_w)
     return E, Wn
 
 
@@ -553,12 +645,13 @@ def main(argv):
     strict = "--strict" in argv
     files = [a for a in argv if not a.startswith("--")]
     dw = next((float(a.split("=", 1)[1]) for a in argv if a.startswith("--display-width=")), None)
+    intent = next((a.split("=", 1)[1] for a in argv if a.startswith("--intent=")), None)
     if not files:
         print(__doc__)
         return 2
     code = 0
     for path in files:
-        E, Wn = lint(path, dw)
+        E, Wn = lint(path, dw, strict=strict, intent=intent)
         for m in E:
             print(f"{path}: ERROR {m}")
         for m in Wn:

@@ -83,16 +83,19 @@ def svg_size(path):
     return (w or 300.0), (h or 150.0)
 
 
-def by_chrome(chrome, src, dst, scale):
+def by_chrome(chrome, src, dst, scale, viewport=None):
+    """Capture a margin-free page. An explicit viewport clips at intrinsic size."""
     w, h = svg_size(src)
-    W, H = int(-(-w // 1)), int(-(-h // 1))
+    W, H = viewport or (int(-(-w // 1)), int(-(-h // 1)))
     with tempfile.TemporaryDirectory(prefix="hsfig-") as tmp:
         html = os.path.join(tmp, "page.html")
         uri = pathlib.Path(src).resolve().as_uri()
+        dimensions = (f'style="width:{w:.12g}px;height:{h:.12g}px"' if viewport
+                      else f'width="{w:g}" height="{h:g}"')
         with open(html, "w", encoding="utf-8") as fh:
             fh.write('<!doctype html><meta charset="utf-8">'
                      "<style>html,body{margin:0;background:#fff}img{display:block}</style>"
-                     f'<img src="{uri}" width="{w:g}" height="{h:g}">')
+                     f'<img src="{uri}" {dimensions}>')
         out = os.path.abspath(dst)
         cmd = [chrome, "--headless=new", f"--screenshot={out}", f"--window-size={W},{H}",
                f"--force-device-scale-factor={scale:g}", "--hide-scrollbars", "--disable-gpu",
