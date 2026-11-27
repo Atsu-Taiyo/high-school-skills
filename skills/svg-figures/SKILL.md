@@ -3,7 +3,7 @@ name: svg-figures
 description: 高校数学・物理・化学の教材用の図（グラフ，図形，力の図，回路，光線図，化学の構造式・装置など）をSVGで作成・修正するときに使う。手描きの図の清書と，印刷図・既存の図の再現を含む。
 license: MIT
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # 高校数学・物理・化学の図を描く
@@ -55,6 +55,7 @@ python3 "$S/render_png.py" --renderer chrome fig.svg              # PNG にし�
 
 - `hsfig.py` の `Figure`（標準ライブラリだけで動く）で新規作図を生成できる。実例は [make_examples.py](examples/make_examples.py)。
 - lint が意図仕様と照合するのは，ルートに `data-mode="A"` があるか `--intent=PATH` を渡したときだけ。ERROR は直し，WARN は該当箇所を目で見て判断する。
+- lint は作図の後に1回かけ，候補を確かめて1回でまとめて直し，もう一度かけて終える（警告を消すためだけに描き直さない）。答案に入れた図は，high-school-math-answers・high-school-physics-answers の `hs_check.py run` からも同じ lint がかかる。
 - Python が使えない環境では，[SVG と文字組み](references/conventions.md) の骨組みで SVG を直接書き，ブラウザで掲載幅に表示して点検項目を目で確かめる。
 
 ## 図に応じて読む資料
