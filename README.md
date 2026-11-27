@@ -45,12 +45,12 @@ python3 "$S/scripts/hs_check.py" run --subject math --final answer.md --problem 
 python3 "$S/scripts/hs_check.py" verify --final answer.md                           # 記録と同じ本文か
 ```
 
-- 検査するのは，SKILL.md と references にある規則のうち機械的に判定できるもの（`\boxed`・`\le`・`\frac`・`\(`，範囲外の定理・用語，`$` の対応，式番号の書式，箇条書き，**答** の行，作業メモ，物理の単位の書体など）。確実に反するものを ERROR，文脈で判断が要るものを WARN にします。どの規則に当たるかは出力の括弧に出ます。
+- 記号・命令・書式・範囲外の語のように機械的に判定できる規則は `hs_check.py` が正本で，SKILL.md と references には書きません。出力の各行が「なぜだめか → 何に直すか」を示し，確実に反するものを ERROR，文脈で判断が要るものを WARN にします。
 - 結果は「検査を実行した」という記録で，答案の正しさの合格ではありません。
 - `run` は最終稿のハッシュと結果を `.hs-check/`（git の最上位か作業ディレクトリ。中に `.gitignore` を置く）に記録します。場所は `--state-dir` か環境変数 `HS_CHECK_STATE_DIR` で変えられます。
 - 答案が `![解図1](fig1.svg)` のように SVG を参照し，svg-figures が隣にあれば，`run` は `lint_svg.py` もかけます。
-- 検査の一覧は正本（references）から作ってあり，`python3 -B -m unittest discover -s tests` が，一覧の各項目が正本の文言を指していること，正本の表の命令がすべて検査されているか理由つきで除外されていることを確かめます。2つのスキルの `hs_check.py` は同じファイルです。
-- Python が使えない環境では，SKILL.md の「出力前の点検」で同じ観点を目で確かめます（検査を実行したことにはなりません）。
+- `python3 hs_check.py rules --subject math` で規則の一覧を Markdown で出せます。各スキルの `references/check-rules.md` はこの出力で，`python3 -B -m unittest discover -s tests` が今の規則と一致することを確かめます。2つのスキルの `hs_check.py` は同じファイルです。
+- Python が使えない環境では，`references/check-rules.md` で同じ規則を目で確かめます（検査を実行したことにはなりません）。
 - 今後の候補：答案を保存したときに検査を促すフック（任意。設定は表示するだけにする）。
 
 ## svg-figures の補助スクリプト

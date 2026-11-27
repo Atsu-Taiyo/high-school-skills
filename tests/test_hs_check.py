@@ -278,62 +278,64 @@ class TestExamplesInReferences(unittest.TestCase):
             self.assertGreater(n, 1)
 
 
-class TestRulesMatchReferences(unittest.TestCase):
-    """検査の一覧が正本（SKILL.md・references）と食い違わないこと。"""
+class TestRulesAreTheSource(unittest.TestCase):
+    """機械的に判定できる規則は hs_check.py が正本。SKILL.md・references に二重に書かない。"""
 
     def _read(self, rel):
         with open(os.path.join(SKILLS, rel), encoding="utf-8") as handle:
             return handle.read()
 
-    def test_every_rule_cites_existing_text(self):
-        refs = [r[5] for r in hs.RULES] + [v[3] for v in hs.MATH_RULES.values()] + \
-               [v[3] for v in hs.FORM_RULES.values()] + [w[4] for w in hs.WORDS]
-        for rel, quote in refs:
-            self.assertIn(quote, self._read(rel), "{} に「{}」がない（正本を直したら hs_check.py も直す）".format(rel, quote))
+    def test_every_rule_says_why_and_fix(self):
+        rows = [(r[0], r[4], r[5]) for r in hs.RULES] + [(k, v[2], v[3]) for k, v in hs.MATH_RULES.items()] + \
+               [(k, v[2], v[3]) for k, v in hs.FORM_RULES.items()] + [(w[0], w[3], w[4]) for w in hs.WORDS]
+        for rid, why, fix in rows:
+            self.assertTrue(why and fix, rid)
+            self.assertNotIn("\n", why + fix, rid)
+            self.assertIn(" → ", hs.message(why, fix))
 
-    def test_words_appear_in_reference(self):
-        for pattern, _level, _subjects, _fix, (rel, quote) in hs.WORDS:
+    def test_lint_messages_carry_why_and_fix(self):
+        for f in hs.lint_text(IMAGE_ONLY, "math"):
+            self.assertIn(" → ", f["message"], f["id"])
+
+    def test_generated_rule_lists_are_current(self):
+        for subject, rel in (("math", "high-school-math-answers"), ("physics", "high-school-physics-answers")):
+            self.assertEqual(self._read(rel + "/references/check-rules.md"), hs.rules_markdown(subject),
+                             "{}/references/check-rules.md が古い。hs_check.py rules --subject {} で作り直す".format(rel, subject))
+
+    def test_skill_text_does_not_repeat_checked_rules(self):
+        # 検査が教える記号・書式の細かい規則を SKILL.md に戻さない（二重管理の防止）
+        for rel in ("high-school-math-answers/SKILL.md", "high-school-physics-answers/SKILL.md"):
             text = self._read(rel)
-            prose = hs.Doc(text).math_mask  # 答案と同じく，数式を除いた地の文でも探す
-            self.assertTrue(re.search(pattern, quote) or re.search(pattern, text) or re.search(pattern, prose),
-                            "{} の語 {} が正本にない".format(rel, pattern))
+            for token in ("\\boxed", "\\leqq", "\\dfrac", "\\binom", "ロピタル", "マクローリン", "……①"):
+                self.assertNotIn(token, text, "{} に {}".format(rel, token))
 
-    # 正本の表にあるが，機械では判定しないか，形を限って検査するもの（理由つき）
-    EXEMPT = {
-        "\\times": "掛け算に使う。ベクトルどうしの外積だけを vec-cross で検査する",
-        "\\mid": "集合の区切りに使う。P(B\\mid A) を cond-prob，\\nmid を nmid で検査する",
-        "\\circ": "数学Ⅲの合成関数と度の記号に使う",
-        "\\displaystyle": "付け忘れを MATH_RULES の displaystyle で検査する",
-        "\\$": "通貨の $ は $ の対応の検査で間接的に見つかる",
+    # 版 C までの references の表（forbidden.md 5節・notation.md 13節・notation-units.md 10節）にあった命令。
+    # 表は hs_check.py に移したので，ここに固定して，どれも検査されることを確かめる。
+    TOKENS = {
+        "math": ["\\prod", "\\forall", "\\exists", "\\binom{n}{r}", "\\mathbb{R}", "\\land", "\\lor", "\\lnot",
+                 "\\langle", "\\rangle", "\\Vert", "\\mathbf{a}", "\\boldsymbol{a}", "\\arcsin", "\\sinh", "\\cot",
+                 "\\sec", "\\csc", "\\ln", "\\exp", "\\lfloor", "\\rfloor", "\\lceil", "\\rceil", "\\partial", "\\nabla",
+                 "\\nmid", "\\gcd", "\\bmod", "\\max", "\\min", "\\begin{pmatrix}", "\\mapsto", "\\sim", "\\approx",
+                 "\\therefore", "\\because", "\\square", "\\newcommand", "\\def", "\\renewcommand", "\\nCr", "\\C",
+                 "\\bm", "\\vector", "\\begin{align}", "\\begin{equation}", "\\begin{eqnarray}", "\\label", "\\ref",
+                 "\\eqref", "\\tag", "\\text{①}", "\\text{㋐}", "\\vec{e_1}", "\\phi", "\\begin{tabular}", "\\mbox",
+                 "\\hbox", "\\textcircled{1}"],
+        "physics": ["\\text{ア}=mg\\sin\\theta", "\\vec{v_A}", "\\si{}", "\\SI{}{}", "\\unit{}", "\\degree", "\\celsius",
+                    "\\ohm", "\\bm{F}", "\\boldsymbol{F}", "\\mathbf{F}", "\\dot{x}", "\\ddot{x}", "\\approx", "\\simeq",
+                    "\\sim"],
     }
 
-    def _table_tokens(self, rel, section_head, column):
-        text = self._read(rel)
-        start = text.index(section_head)
-        nxt = text.find("\n## ", start + 1)
-        sub = text.find("\n### ", start + 1)
-        end = min(x for x in (nxt, sub, len(text)) if x > 0)
-        tokens = []
-        for line in text[start:end].splitlines():
-            if not line.startswith("|") or line.startswith("|---"):
-                continue
-            cells = [c.strip() for c in line.strip("|").split("|")]
-            if len(cells) > column:
-                tokens += re.findall(r"`(\\[^`]+)`", cells[column])
-        return tokens
-
-    def test_reference_tables_are_covered(self):
-        tables = [(hs.FB, "## 5. 範囲外の記号", 1, "math"), (hs.NT, "## 13. 描画できなくなる書き方", 0, "math"),
-                  (hs.NU, "## 10. 描画できなくなる書き方", 0, "physics")]
-        base = ids(answer("$x$ である。"), "math") | ids(answer("$x$ である。"), "physics")
-        for rel, head, col, subject in tables:
-            tokens = self._table_tokens(rel, head, col)
-            self.assertTrue(tokens, rel)
+    def test_former_reference_tables_are_covered(self):
+        for subject, tokens in self.TOKENS.items():
+            base = ids(answer("$x$ である。"), subject)
             for token in tokens:
-                if token in self.EXEMPT:
-                    continue
                 found = ids(answer("$" + token + "$ である。"), subject) - base
-                self.assertTrue(found, "{} の {} を検査していない（検査を足すか EXEMPT に理由を書く）".format(rel, token))
+                self.assertTrue(found, "{} の {} を検査していない".format(subject, token))
+
+    def test_rules_command(self):
+        proc = subprocess.run([sys.executable, MATH_SCRIPT, "rules", "--subject", "physics"], capture_output=True, text=True)
+        self.assertEqual(proc.returncode, 0)
+        self.assertIn("微分方程式", proc.stdout)
 
 
 class TestCopies(unittest.TestCase):
