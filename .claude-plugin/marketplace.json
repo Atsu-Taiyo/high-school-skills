@@ -1,0 +1,21 @@
+{
+  "name": "high-school-skills",
+  "description": "日本の高校数学・物理の答案と教材用 SVG 図のためのスキル集。",
+  "owner": {
+    "name": "Atsu-Taiyo",
+    "url": "https://github.com/Atsu-Taiyo"
+  },
+  "plugins": [
+    {
+      "name": "high-school-skills",
+      "description": "日本の高校数学・物理の答案らしい解答を書き，答案を添削・点検するスキルと，教材用の図を SVG で描くスキル。",
+      "version": "1.0.0",
+      "author": {
+        "name": "Atsu-Taiyo"
+      },
+      "source": "./",
+      "homepage": "https://github.com/Atsu-Taiyo/high-school-skills",
+      "license": "MIT"
+    }
+  ]
+}
