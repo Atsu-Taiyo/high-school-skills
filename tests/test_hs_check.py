@@ -158,6 +158,9 @@ class TestForm(unittest.TestCase):
         self.assertIn("after-answer", ids(GOOD_MATH + "\nこの問題は難しい。\n", level="WARN"))
         sep = GOOD_MATH + "\n---\n\n検査：ERROR 0 件・WARN 0 件\n"
         self.assertFalse(ids(sep) & {"after-answer", "after-answer-check", "bullet", "desu-masu"})
+        self.assertIn("check-line", ids(GOOD_MATH + "\n---\n\n検査：ERROR 0 件・WARN 0 件（answer.md に保存，verify 済み）\n", level="WARN"))
+        self.assertIn("check-line", ids(GOOD_MATH + "\n---\n\n検査：ERROR 0 件・WARN 0 件\n\nanswer.md に保存しました。\n", level="WARN"))
+        self.assertNotIn("check-line", ids(GOOD_MATH + "\n---\n\n**検査**：ERROR 1 件・WARN 2 件\n"))
         multi = "**解答**\n\n$x=1$ である。\n\n**答**\n\n$a<0$ のとき　最小値 $3$\n\n$a\\geqq 0$ のとき　最小値 $1$\n"
         self.assertNotIn("after-answer", ids(multi))
 
@@ -214,6 +217,14 @@ class TestWords(unittest.TestCase):
             self.assertIn("scope-word", ids(answer(word + "。"), level="ERROR"), word)
         for word in ("直交座標で", "剰余の定理により", "漸近線は"):
             self.assertNotIn("scope-word", ids(answer(word + "。")), word)
+
+    def test_interchange_and_cauchy_words(self):
+        for text in ("一様収束するから", "極限と積分の順序を交換して", "積分と極限を交換すると", "項別積分すると",
+                     "コーシーの平均値の定理より"):
+            self.assertIn("scope-word", ids(answer(text + "，$x=1$ である。"), level="ERROR"), text)
+        # 高校の言葉は拾わない
+        for text in ("平均値の定理より", "和の順序を入れ替えて", "極限値を求めると", "はさみうちの原理より"):
+            self.assertNotIn("scope-word", ids(answer(text + "，$x=1$ である。")), text)
 
     def test_problem_terms_are_allowed(self):
         self.assertIn("scope-word", ids(answer("2つのベクトルは直交する。")))
@@ -311,7 +322,7 @@ class TestRulesAreTheSource(unittest.TestCase):
 
     def test_skill_text_lists_forbidden_methods(self):
         # 解き方の禁止は書く前に知っている必要があるので，SKILL.md 本文に短い一覧で置く（版 D'）
-        wants = {"high-school-math-answers/SKILL.md": ("ロピタル", "テイラー展開", "外積", "逆三角関数"),
+        wants = {"high-school-math-answers/SKILL.md": ("ロピタル", "テイラー展開", "外積", "逆三角関数", "一様収束", "順序交換", "コーシーの平均値の定理"),
                  "high-school-physics-answers/SKILL.md": ("微分方程式", "外積", "慣性モーメント", "ガウスの法則", "複素インピーダンス")}
         for rel, tokens in wants.items():
             text = self._read(rel)
