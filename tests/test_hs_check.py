@@ -306,8 +306,24 @@ class TestRulesAreTheSource(unittest.TestCase):
         # 検査が教える記号・書式の細かい規則を SKILL.md に戻さない（二重管理の防止）
         for rel in ("high-school-math-answers/SKILL.md", "high-school-physics-answers/SKILL.md"):
             text = self._read(rel)
-            for token in ("\\boxed", "\\leqq", "\\dfrac", "\\binom", "ロピタル", "マクローリン", "……①"):
+            for token in ("\\boxed", "\\leqq", "\\dfrac", "\\binom", "\\therefore", "……①"):
                 self.assertNotIn(token, text, "{} に {}".format(rel, token))
+
+    def test_skill_text_lists_forbidden_methods(self):
+        # 解き方の禁止は書く前に知っている必要があるので，SKILL.md 本文に短い一覧で置く（版 D'）
+        wants = {"high-school-math-answers/SKILL.md": ("ロピタル", "テイラー展開", "外積", "逆三角関数"),
+                 "high-school-physics-answers/SKILL.md": ("微分方程式", "外積", "慣性モーメント", "ガウスの法則", "複素インピーダンス")}
+        for rel, tokens in wants.items():
+            text = self._read(rel)
+            for token in tokens:
+                self.assertIn(token, text, "{} に {} の禁止がない".format(rel, token))
+
+    def test_descriptions_are_short(self):
+        import re
+        for rel in ("high-school-math-answers/SKILL.md", "high-school-physics-answers/SKILL.md"):
+            desc = re.search(r"^description: (.*)$", self._read(rel), re.M).group(1)
+            self.assertLessEqual(len(desc), 200, rel)
+            self.assertIn("問題", desc)
 
     # 版 C までの references の表（forbidden.md 5節・notation.md 13節・notation-units.md 10節）にあった命令。
     # 表は hs_check.py に移したので，ここに固定して，どれも検査されることを確かめる。
